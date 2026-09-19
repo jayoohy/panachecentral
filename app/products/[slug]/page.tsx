@@ -1,0 +1,61 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ProductDetailView } from "@/components/commerce/ProductDetailView";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { fetchProduct } from "@/lib/duka/catalogue";
+import { breadcrumbSchema, productSchema } from "@/lib/seo/schema";
+import { SITE_NAME, truncate } from "@/lib/site";
+
+export async function generateMetadata({ params }: PageProps<"/products/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await fetchProduct(slug);
+  if (!product) return {};
+
+  const description = truncate(product.description);
+  const path = `/products/${product.slug}`;
+
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      locale: "en_NG",
+      title: product.name,
+      description,
+      url: path,
+      images: product.images.slice(0, 1).map((url) => ({ url, alt: product.name })),
+    },
+  };
+}
+
+export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
+  const { slug } = await params;
+  const product = await fetchProduct(slug);
+
+  // null = Duka confirmed it doesn't exist -> a real 404 status. undefined = API hiccup ->
+  // let the client view fetch (and 404 client-side if it also fails).
+  if (product === null) notFound();
+
+  return (
+    <>
+      {product && (
+        <JsonLd
+          data={[
+            productSchema(product),
+            breadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Shop", path: "/shop" },
+              ...(product.category
+                ? [{ name: product.category.name, path: `/shop/${product.category.slug}` }]
+                : []),
+              { name: product.name, path: `/products/${product.slug}` },
+            ]),
+          ]}
+        />
+      )}
+      <ProductDetailView slug={slug} initialProduct={product} />
+    </>
+  );
+}

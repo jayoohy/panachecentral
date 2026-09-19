@@ -1,26 +1,253 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Brand Identity Guide v1.0 — locked palette, no exceptions.
+   See docs/panache-central-website-reference.md §2. */
+@theme {
+  --color-onyx: #0a0a0a;
+  --color-gold: #c9a24b;
+  --color-bone: #f5f1ea;
+  --color-bronze: #8a6a3b;
+  /* Stitch design system: slightly raised charcoal surface for stacked panels on Onyx. */
+  --color-surface: #141310;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-serif: var(--font-display), Georgia, serif;
+  --font-sans: var(--font-body), "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-onyx);
+  color: var(--color-bone);
+}
+
+/* One functional-only exception to the locked brand palette, scoped strictly
+   to form/stock/payment error feedback — see docs/design/panache-storefront-design-spec.md §0. */
+:root {
+  --color-error: #ffb4ab; /* Stitch `error` token — the old #b3261e fails contrast on Onyx */
+
+  /* transitions-dev tokens, scoped to what the storefront actually wires up
+     (design spec §5/§7) rather than importing the full snippet library. */
+  --text-swap-dur: 200ms;
+  --text-swap-translate-y: 8px;
+  --text-swap-blur: 2px;
+  --text-swap-ease: ease-out;
+
+  --badge-pop-dur: 500ms;
+  --badge-pop-ease: cubic-bezier(0.34, 1.36, 0.64, 1);
+
+  --panel-open-dur: 320ms;
+  --panel-close-dur: 200ms;
+  --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shake-distance: 6px;
+  --shake-overshoot: 4px;
+  --shake-dur-a: 80ms;
+  --shake-dur-b: 60ms;
+  --shake-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Stitch motion: slow, weighted, no springs — 600ms on one curve. */
+  --reveal-dur: 600ms;
+  --reveal-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --reveal-distance: 24px;
+
+  --press-dur: 160ms;
+  --press-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scroll reveal — see components/shared/Reveal.tsx. Attribute is only set after hydration. */
+[data-reveal] {
+  transition:
+    opacity var(--reveal-dur) var(--reveal-ease) var(--reveal-delay, 0ms),
+    transform var(--reveal-dur) var(--reveal-ease) var(--reveal-delay, 0ms);
+}
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(var(--reveal-distance));
+}
+
+/* Preloader — see components/layout/Preloader.tsx. Hidden unless the head script armed it
+   (data-preload on <html>), so no-JS and reduced-motion visitors never see it. */
+[data-preloader] {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-onyx);
+  color: var(--color-bone);
+  transition: transform 1000ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+html[data-preload] [data-preloader] {
+  display: flex;
+}
+html[data-preload="leaving"] [data-preloader] {
+  transform: translateY(-100%);
+}
+.preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  padding: 0 1.5rem;
+  text-align: center;
+  transition: opacity 500ms ease-out;
+}
+html[data-preload="leaving"] .preloader-content {
+  opacity: 0;
+}
+.preloader-wordmark {
+  animation: preloader-rise 1400ms var(--reveal-ease) 200ms both;
+}
+.preloader-line {
+  display: block;
+  width: 9rem;
+  height: 1px;
+  background: var(--color-gold);
+  transform-origin: left;
+  animation: preloader-draw 1500ms cubic-bezier(0.65, 0, 0.35, 1) 500ms both;
+}
+.preloader-tagline {
+  color: rgb(245 241 234 / 0.6);
+  animation: preloader-rise 1200ms var(--reveal-ease) 1100ms both;
+}
+@keyframes preloader-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(6px);
+  }
+}
+@keyframes preloader-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Hold the hero entrance until the curtain lifts. */
+html[data-preload="active"] .hero-in {
+  animation-play-state: paused;
+}
+
+/* Hero entrance on load — stagger with an arbitrary animation-delay per element. */
+.hero-in {
+  animation: hero-in 900ms var(--reveal-ease) both;
+}
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* Press feedback (emil-design-eng) — every pressable commerce control. */
+.t-press {
+  transition: transform var(--press-dur) var(--press-ease);
+}
+.t-press:active {
+  transform: scale(0.97);
+}
+
+/* Text states swap — Add to Cart -> Added to Cart, coupon result lines. */
+.t-text-swap {
+  display: inline-grid;
+}
+.t-text-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity var(--text-swap-dur) var(--text-swap-ease),
+    transform var(--text-swap-dur) var(--text-swap-ease),
+    filter var(--text-swap-dur) var(--text-swap-ease);
+}
+.t-text-swap[data-state="a"] > [data-slot="b"],
+.t-text-swap[data-state="b"] > [data-slot="a"] {
+  opacity: 0;
+  filter: blur(var(--text-swap-blur));
+  transform: translateY(var(--text-swap-translate-y));
+  pointer-events: none;
+}
+
+/* Notification badge pop — cart item count. */
+.t-badge-pop {
+  animation: badge-pop var(--badge-pop-dur) var(--badge-pop-ease);
+}
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Cart drawer panel reveal. */
+.t-panel-scrim {
+  transition: opacity var(--panel-open-dur) var(--panel-ease);
+}
+.t-panel-scrim[data-state="closed"] {
+  opacity: 0;
+}
+.t-panel {
+  transition: transform var(--panel-open-dur) var(--panel-ease);
+  transform: translateX(0);
+}
+.t-panel[data-state="closed"] {
+  transition-duration: var(--panel-close-dur);
+  transform: translateX(100%);
+}
+
+/* Error state shake — invalid form fields, coupon errors. */
+.t-shake[data-shaking="true"],
+[data-shaking="true"] .t-shake {
+  animation: shake-x calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2) var(--shake-ease);
+}
+@keyframes shake-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(calc(var(--shake-distance) * -1));
+  }
+  50% {
+    transform: translateX(var(--shake-overshoot));
+  }
+  75% {
+    transform: translateX(calc(var(--shake-distance) * -0.5));
+  }
+}
+
+/* Success check — order confirmation payment-paid moment. */
+.t-success-check circle {
+  stroke-dasharray: 76;
+  stroke-dashoffset: 76;
+  animation: success-circle 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.t-success-check path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: success-path 400ms cubic-bezier(0.22, 1, 0.36, 1) 300ms forwards;
+}
+@keyframes success-circle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes success-path {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
