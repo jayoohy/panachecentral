@@ -7,3 +7,13 @@ export function formatMoney(minorUnits: number, currency: string = "NGN"): strin
     maximumFractionDigits: minorUnits % 100 === 0 ? 0 : 2,
   }).format(minorUnits / 100);
 }
+
+/** "₦15,000", or "₦15,000 – ₦18,000" when variants differ, "" when the product has no priced variant. */
+export function formatPriceRange(range: {
+  minPriceMinorUnits: number | null;
+  maxPriceMinorUnits: number | null;
+}): string {
+  const { minPriceMinorUnits: min, maxPriceMinorUnits: max } = range;
+  if (min === null) return "";
+  return max !== null && max !== min ? `${formatMoney(min)} – ${formatMoney(max)}` : formatMoney(min);
+}

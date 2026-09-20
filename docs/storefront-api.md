@@ -5,7 +5,9 @@ the Duka commerce platform. This covers the **entire** public storefront
 surface, documented below in full. Everything else in the API
 (`/catalogue/*`, `/orders/*` without the `storefront` prefix, `/staff`,
 `/platform/*`, etc.) is the admin dashboard's API and is out of scope here —
-do not call it from a storefront client.
+do not call it from a storefront client. For the agent-facing counterpart —
+an AI assistant acting on the _merchant's_ behalf, not a customer-facing
+client — see [MCP Tenant Copilot](./mcp-api.md).
 
 Live interactive spec: `GET /api/docs` (Swagger UI) on the API host.
 
@@ -14,11 +16,11 @@ Live interactive spec: `GET /api/docs` (Swagger UI) on the API host.
 Every request must resolve to exactly one tenant (store). The API picks the
 tenant in this order — pick **one** and be consistent:
 
-| Method | How | When to use |
-|---|---|---|
-| Subdomain | Host header is `{tenant-slug}.duka.app` (or configured `APP_BASE_DOMAIN`) | Production storefronts served on the tenant's subdomain |
-| Custom domain | Host header matches a verified `domain_mappings` row | Tenant has mapped their own domain |
-| API key | `X-API-Key` header alone (no host match needed) | Local dev, mobile apps, or any client not served from the tenant's domain |
+| Method        | How                                                                       | When to use                                                               |
+| ------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Subdomain     | Host header is `{tenant-slug}.duka.app` (or configured `APP_BASE_DOMAIN`) | Production storefronts served on the tenant's subdomain                   |
+| Custom domain | Host header matches a verified `domain_mappings` row                      | Tenant has mapped their own domain                                        |
+| API key       | `X-API-Key` header alone (no host match needed)                           | Local dev, mobile apps, or any client not served from the tenant's domain |
 
 For local development or a storefront not hosted on the tenant's own
 (sub)domain, **the API key is sufficient** — you do not need to send a
@@ -147,12 +149,12 @@ GET /api/storefront/v1/catalogue/products
 
 Query params (all optional):
 
-| Param | Type | Default | Notes |
-|---|---|---|---|
-| `page` | number | `1` | |
-| `pageSize` | number | `20` | capped at 100 |
-| `categoryId` | uuid | — | filter to one category |
-| `search` | string | — | case-insensitive substring match on product name |
+| Param        | Type   | Default | Notes                                            |
+| ------------ | ------ | ------- | ------------------------------------------------ |
+| `page`       | number | `1`     |                                                  |
+| `pageSize`   | number | `20`    | capped at 100                                    |
+| `categoryId` | uuid   | —       | filter to one category                           |
+| `search`     | string | —       | case-insensitive substring match on product name |
 
 Only `status: "active"` products are ever returned — draft/archived products
 never appear here, so you don't need to filter client-side.
@@ -180,6 +182,10 @@ Response `200`:
         "slug": "electronics-a1b2"
       },
       "thumbnail": "https://.../mouse-front.jpg",
+      "images": ["https://.../mouse-front.jpg", "https://.../mouse-side.jpg"],
+      "minPriceMinorUnits": 1500000,
+      "maxPriceMinorUnits": 1800000,
+      "stock": 42,
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
     }
@@ -196,11 +202,20 @@ if the product has no images uploaded — render a placeholder in that case.
 is already fixed for the whole request, and `addedBy` is a staff audit
 field) with no display use on a customer-facing grid.
 
-Note: this list does **not** include variants, price, or stock — fetch
-product detail for that. Design your product grid to show name/slug/thumbnail
-and defer price/stock to the detail view or a follow-up batched call if you
-need prices on the grid (not currently exposed as a batch endpoint — see
-Known Gaps).
+`images` is every uploaded image in display order (`images[0]` is the
+`thumbnail`) — empty array if none — so a grid can show a hover/carousel
+image without a detail call. `minPriceMinorUnits` / `maxPriceMinorUnits` are
+the cheapest and priciest variant prices (equal for a single-variant
+product; both `null` if the product has no variants yet). Show "From X" when
+they differ.
+
+`stock` is the total units on hand across all of the product's variants and
+locations (never negative). Use it for an "In stock / Sold out" badge on the
+grid only — it is **not** a quantity cap, since a shopper adds a specific
+variant. Cap add-to-cart with the per-variant `stock` from §5.3.
+
+Note: this list does **not** include variants — fetch product detail for
+those.
 
 ### 5.3 Get product detail
 
@@ -256,7 +271,22 @@ product.
 
 `stock` of `0` means out of stock — disable add-to-cart for that variant, the
 API does not block adding an out-of-stock item to the cart itself (stock is
-only enforced at checkout).
+only enforced at checkout). Use `stock` as the max quantity in your
+quantity picker.
+
+**When stock changes:** stock is decremented at **checkout (order
+creation, §5.9)**, not at payment confirmation. An order awaiting payment
+therefore already holds its stock; if it goes unpaid for 1 hour it expires
+and the stock is released (§6). Adding to a cart never reserves anything, so
+`stock` can drop between page load and checkout — handle a checkout-time
+stock error.
+
+`stock` is pooled across all of the store's locations, and checkout sells
+from that same pool: it takes units from the default location first, then
+from whichever others hold the most, all in one transaction. So a quantity
+within `stock` is always fulfillable at the moment you checked; only a
+concurrent order can make it fail (`400`, "Not enough stock to fulfil this
+order").
 
 ### 5.4 Create a cart
 
@@ -280,6 +310,32 @@ Response `201`:
   "pricesIncludeTax": false
 }
 ```
+
+Each entry in `items` (once the cart has lines) looks like:
+
+```json
+{
+  "id": "uuid",
+  "productVariantId": "uuid",
+  "productName": "Wireless Mouse",
+  "productSlug": "wireless-mouse-x7k2",
+  "sku": "WM-BLK-001",
+  "attributeValues": { "color": "Black" },
+  "image": "https://.../mouse-front.jpg",
+  "quantity": 2,
+  "stock": 42,
+  "unitPriceMinorUnits": 1500000,
+  "lineSubtotalMinorUnits": 3000000,
+  "lineTaxMinorUnits": 225000,
+  "lineTotalMinorUnits": 3225000
+}
+```
+
+`productName`, `sku`, `attributeValues` and `image` (lead image, `null` if
+none) are enough to render the line; `productSlug` links to the product page
+(§5.3). `stock` is the variant's current pooled units on hand (never
+negative) — cap the line's quantity picker at it (§5.3 has the same number
+per variant).
 
 Call this once per shopper session and persist `id` client-side. Don't call
 it again for the same shopper unless the stored cart id is gone/invalid.
@@ -351,7 +407,7 @@ Only one coupon per cart; applying a new code replaces whatever was applied
 before (there's no separate "remove then apply" required).
 
 Every subsequent `GET`/`PATCH` on this cart re-validates the stored code
-against the *current* subtotal and against the coupon's live state (it could
+against the _current_ subtotal and against the coupon's live state (it could
 be deactivated, expire, or hit its redemption limit from someone else's
 checkout in the meantime). If it's no longer valid, the API silently clears
 it and the response reverts to `discountMinorUnits: 0, couponCode: null` —
@@ -433,10 +489,11 @@ included, plus a `payment` key:
   `order.paymentStatus` is `"pending"` until a webhook confirms it — see §6.
 - **Tenant has no gateway configured**: `payment` is `undefined` and
   `paymentReference` is `null`, exactly like every field behaved before this
-  existed. Don't branch your checkout UI on the *absence* of gateway fields
+  existed. Don't branch your checkout UI on the _absence_ of gateway fields
   breaking anything — this is the fully-supported, unchanged default path.
 
 Errors:
+
 - `404` — cart not found.
 - `400` — cart is empty, a variant in it no longer exists, or `returnUrl` is
   missing while a gateway is active.
@@ -597,11 +654,13 @@ The following all require the `duka_customer_session` cookie (§2.1) —
 ```
 GET /api/storefront/v1/account
 ```
+
 The logged-in customer's own profile: `{ "id", "name", "email", "phone" }`.
 
 ```
 GET /api/storefront/v1/account/orders
 ```
+
 Paginated (`page`/`pageSize`, same convention as §5.2), newest first:
 `{ "page", "pageSize", "total", "totalPages", "hasNextPage", "hasPrevPage",
 "items": [...] }` where each item is the same shape as §5.10 (minus `items`,
@@ -611,6 +670,7 @@ ever returns orders that belong to this customer.
 ```
 GET /api/storefront/v1/account/orders/:id
 ```
+
 Full order detail (same shape as §5.10, including `items`). `404` — not
 `403` — if the order exists but belongs to a different customer, so this
 route can't be used to confirm whether an arbitrary order id is valid.
@@ -669,8 +729,8 @@ Minimal client flow to implement a storefront against this API:
    from the listing/cart response, not the product's `id`); render variants as
    a selector (size/color/etc. from `attributeValues`), disable variants
    where `stock === 0`.
-4. **Add/update/remove from cart**: `PATCH /cart/:cartId` with the *new
-   absolute* quantity for that variant (not a delta). Re-render the cart from
+4. **Add/update/remove from cart**: `PATCH /cart/:cartId` with the _new
+   absolute_ quantity for that variant (not a delta). Re-render the cart from
    the response body — no extra GET needed.
 5. **Cart page**: `GET /cart/:cartId` on load to reconcile state (e.g. after
    a refresh); render `items`, `subtotalMinorUnits`, `taxMinorUnits`,
@@ -707,6 +767,7 @@ Minimal client flow to implement a storefront against this API:
    nothing here is reachable without the session cookie from step 6.
 
 Required headers on every request (server-side only — never in browser JS):
+
 ```
 X-API-Key: <tenant key>
 X-API-Secret: <tenant secret>

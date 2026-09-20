@@ -78,7 +78,7 @@ export function ShopView({
             {data.items.map((product, index) => (
               // Stagger every other column (Stitch asymmetric grid) — offsets follow the column count.
               <Reveal key={product.id} delay={(index % 3) * 100} className="even:mt-12 lg:even:mt-0 lg:nth-[3n+2]:mt-12">
-                <ProductCard product={product} index={(data.page - 1) * data.items.length + index} />
+                <ProductCard product={product} />
               </Reveal>
             ))}
           </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatMoney } from "@/lib/format-money";
 import { QuantityStepper } from "@/components/commerce/QuantityStepper";
 import type { CartItem } from "@/lib/duka/types";
@@ -17,26 +18,29 @@ export function CartLineItem({
   pending?: boolean;
 }) {
   const attributeSummary = Object.entries(item.attributeValues ?? {})
-    .map(([key, value]) => `${key}: ${value}`)
+    .filter(([key]) => key !== "supplier_sku") // internal sourcing code, not for shoppers
+    .map(([key, value]) => `${key.replace(/_/g, " ")}: ${value}`)
     .join(", ");
 
   return (
     <div className={`flex gap-4 py-4 transition-opacity ${pending ? "opacity-50" : ""}`}>
       <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-none bg-surface">
-        {item.thumbnail ? (
+        {item.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.thumbnail} alt="" className="h-full w-full rounded-none object-cover" />
+          <img src={item.image} alt="" className="h-full w-full rounded-none object-cover" />
         ) : (
           <ImagePlaceholderIcon />
         )}
       </div>
       <div className="flex flex-1 flex-col justify-between">
         <div>
-          <p className="font-serif text-sm text-bone">{item.productName}</p>
+          <Link href={`/products/${item.productSlug}`} className="font-serif text-sm text-bone hover:text-gold">
+            {item.productName}
+          </Link>
           {attributeSummary && <p className="text-xs text-bone/50">{attributeSummary}</p>}
         </div>
         <div className="flex items-center justify-between">
-          <QuantityStepper quantity={item.quantity} onChange={onQuantityChange} />
+          <QuantityStepper quantity={item.quantity} onChange={onQuantityChange} max={item.stock} />
           <p className="text-sm font-medium tabular-nums text-bone">
             {formatMoney(item.lineTotalMinorUnits)}
           </p>

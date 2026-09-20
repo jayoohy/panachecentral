@@ -34,7 +34,7 @@ export const fetchProduct = cache(async (slug: string): Promise<ProductDetail | 
 export const fetchProductsPage = cache(
   async (categoryId?: string, page = 1): Promise<Paginated<ProductSummary> | undefined> => {
     try {
-      const { data } = await listProducts({ page, categoryId });
+      const { data } = await listProducts({ page, pageSize: 12, categoryId });
       // Hidden-category products (Repairs, Watches) are dropped from the rendered
       // items; the API's own total/totalPages aren't recalculated, since it has no
       // concept of these exclusions — an edge case worth knowing about, not fixable

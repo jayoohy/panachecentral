@@ -4,11 +4,12 @@ import Link from "next/link";
 import type { ProductSummary } from "@/lib/duka/types";
 import { useQuickAddToCart } from "@/hooks/useQuickAddToCart";
 import { useQuickViewStore } from "@/lib/store/quick-view-store";
+import { formatPriceRange } from "@/lib/format-money";
 
 /**
- * Stitch shop tile: a dark vitrine frame with a numbered label over the
- * photograph and the name below. No price: the listing endpoint doesn't
- * return it (docs/storefront-api.md §5.2) — shown on detail (and in Quick Look).
+ * Stitch shop tile: a dark vitrine frame with the category label over the
+ * photograph, then the name and price (a min – max range when variants
+ * differ, docs/storefront-api.md §5.2).
  *
  * The whole card navigates to the product page via a "stretched link" — the
  * visible <Link> only wraps the title text, but its ::before covers the full
@@ -20,8 +21,7 @@ import { useQuickViewStore } from "@/lib/store/quick-view-store";
  * unknown/configurable, so next.config.ts can't allowlist it yet. Switch to
  * next/image once the real CDN domain is known.
  */
-export function ProductCard({ product, index }: { product: ProductSummary; index: number }) {
-  const number = String(index + 1).padStart(2, "0");
+export function ProductCard({ product }: { product: ProductSummary }) {
   const { addToCart, pendingSlug, addedSlug } = useQuickAddToCart();
   const openQuickView = useQuickViewStore((state) => state.open);
   const isAdding = pendingSlug === product.slug;
@@ -31,8 +31,7 @@ export function ProductCard({ product, index }: { product: ProductSummary; index
     <div className="group relative">
       <div className="border border-bone/10 bg-surface p-2.5 transition-colors duration-500 group-hover:border-gold sm:p-4">
         <p className="text-[0.625rem] font-semibold uppercase tracking-[0.15em] text-bone/60 sm:text-[0.6875rem] sm:tracking-[0.18em]">
-          No. {number}
-          {product.category && ` / ${product.category.name}`}
+          {product.category?.name ?? " "}
         </p>
         <div className="relative mt-3 aspect-square overflow-hidden bg-onyx sm:mt-4">
           {product.thumbnail ? (
@@ -65,6 +64,9 @@ export function ProductCard({ product, index }: { product: ProductSummary; index
           >
             {product.name}
           </Link>
+        </p>
+        <p className="mt-1 text-xs tabular-nums text-bone/70 sm:text-sm">
+          {product.stock === 0 ? "Sold out" : formatPriceRange(product)}
         </p>
       </div>
 

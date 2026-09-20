@@ -18,6 +18,10 @@ export type ProductSummary = {
   status: "active";
   category: { id: string; name: string; slug: string } | null;
   thumbnail: string | null;
+  minPriceMinorUnits: number | null;
+  maxPriceMinorUnits: number | null;
+  /** Total units across all variants — for a sold-out badge only, not a quantity cap. */
+  stock: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -66,10 +70,13 @@ export type Cart = {
 export type CartItem = {
   productVariantId: string;
   productName: string;
+  productSlug: string;
   sku: string;
   attributeValues: Record<string, string>;
-  thumbnail?: string | null;
+  image: string | null;
   quantity: number;
+  /** The variant's current units on hand — the cap for this line's quantity. */
+  stock: number;
   unitPriceMinorUnits: number;
   lineTotalMinorUnits: number;
 };
