@@ -3,7 +3,7 @@ import { ContentPage, type ContentSection } from "@/components/shared/ContentPag
 import { SITE_NAME } from "@/lib/site";
 
 const TITLE = "About";
-const DESCRIPTION = `${SITE_NAME} is a fine jewelry house for people who buy once and keep forever. Stainless steel, moissanite, and gold pieces, chosen to sit beside gold and diamonds.`;
+const DESCRIPTION = `${SITE_NAME} is a luxury jewelry house for people who choose pieces to wear, not just to own. Stainless steel, moissanite, and gold-plated pieces, chosen one at a time.`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -18,8 +18,8 @@ const SECTIONS: ContentSection[] = [
   {
     heading: "The House",
     paragraphs: [
-      "Panache Central is a fine jewelry house for people who buy once and keep forever.",
-      "Every piece is chosen — not stocked — to sit alongside gold and diamonds without looking out of place.",
+      "Panache Central is a luxury jewelry house for people who choose pieces to wear, not just to own.",
+      "Every piece is chosen, not stocked.",
     ],
   },
   {
@@ -31,19 +31,13 @@ const SECTIONS: ContentSection[] = [
   {
     heading: "One Material Standard",
     paragraphs: [
-      "Stainless steel, moissanite, and gold pieces are held to the same bar. There's no lower tier and no starter line. Each product page lists the exact material.",
+      "Stainless steel, moissanite, and gold-plated pieces. Each product page lists the exact material.",
     ],
   },
   {
-    heading: "Made for the Long Wear",
+    heading: "Chosen for Daily Wear",
     paragraphs: [
-      "Pieces are built for daily wear and for handing down, not for one event and a drawer.",
-    ],
-  },
-  {
-    heading: "Arrives the Way It’s Made",
-    paragraphs: [
-      "Each order ships in an Onyx Black box with a Champagne Gold seal, lined in Bone White. A printed card notes the material and how to care for it. Nothing extra. Nothing missing.",
+      "Pieces are selected for everyday wear, not for one event and a drawer.",
     ],
   },
 ];
@@ -54,7 +48,7 @@ export default function AboutPage() {
       kicker="The House"
       title="About"
       accent="Panache Central"
-      intro="A fine jewelry house for people who buy once and keep forever."
+      intro="A luxury jewelry house for people who choose pieces to wear, not just to own."
       sections={SECTIONS}
       cta={{ label: "Shop the Collection", href: "/shop" }}
     />

@@ -20,9 +20,12 @@ export function VariantSelector({
   selectedAttributes: Record<string, string>;
   onSelectAttribute: (key: string, value: string) => void;
 }) {
+  // Only an attribute with more than one distinct value across variants is a real choice —
+  // e.g. a single-variant product's "length" or internal SKU-style attribute always has
+  // exactly one value, so showing it as a pickable row is just noise, not a decision.
   const attributeKeys = Array.from(
     new Set(variants.flatMap((variant) => Object.keys(variant.attributeValues)))
-  );
+  ).filter((key) => new Set(variants.map((variant) => variant.attributeValues[key]).filter(Boolean)).size > 1);
 
   if (attributeKeys.length === 0) return null;
 

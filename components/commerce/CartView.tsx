@@ -31,7 +31,7 @@ export function CartView() {
     return (
       <EmptyState
         heading="Your cart is empty."
-        body="Every piece here is made to be worn, not just bought."
+        body="Every piece here is meant to be worn, not just bought."
         cta={{ label: "Browse the Collection", href: "/shop" }}
       />
     );

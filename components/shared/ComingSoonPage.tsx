@@ -3,8 +3,8 @@ import { SectionKicker } from "@/components/shared/SectionKicker";
 
 /**
  * Full-page "Coming Soon" stub — design spec §3.11.
- * Reused for every footer Company/Legal route this cycle (About, Care & Materials,
- * Contact, Privacy, Terms, Shipping & Returns) rather than a 404 or invented copy.
+ * Reused for the footer's remaining Legal routes (Privacy, Terms) rather than a
+ * 404 or invented copy, pending real policy text.
  */
 export function ComingSoonPage() {
   return (

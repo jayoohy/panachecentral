@@ -11,10 +11,10 @@ const PAYMENT_LABELS: Record<PaymentStatus, string> = {
 
 const FULFILLMENT_LABELS: Record<FulfillmentStatus, string> = {
   received: "Received",
-  payment_confirmed: "Payment Confirmed",
+  payment_confirmed: "Confirmed",
   inventory_updated: "Preparing",
-  picking: "Picking",
-  packing: "Packing",
+  picking: "Preparing",
+  packing: "Preparing",
   dispatched: "Dispatched",
   delivered: "Delivered",
   completed: "Completed",
@@ -30,6 +30,10 @@ export function formatFulfillmentStatus(status: FulfillmentStatus): string {
 }
 
 // Display-only reference — the API has no human order number (design spec §8).
+export function formatOrderNumber(orderId: string): string {
+  return orderId.slice(0, 8).toUpperCase();
+}
+
 export function formatOrderReference(orderId: string): string {
-  return `Order #${orderId.slice(0, 8).toUpperCase()}`;
+  return `Order #${formatOrderNumber(orderId)}`;
 }

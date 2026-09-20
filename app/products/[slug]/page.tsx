@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductDetailView } from "@/components/commerce/ProductDetailView";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { isVisibleProduct } from "@/lib/constants";
 import { fetchProduct } from "@/lib/duka/catalogue";
 import { breadcrumbSchema, productSchema } from "@/lib/seo/schema";
 import { SITE_NAME, truncate } from "@/lib/site";
@@ -37,6 +38,10 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
   // null = Duka confirmed it doesn't exist -> a real 404 status. undefined = API hiccup ->
   // let the client view fetch (and 404 client-side if it also fails).
   if (product === null) notFound();
+
+  // Products under a hidden category (Repairs, Watches) are fully unlisted —
+  // the record still exists in the catalogue, it's just not reachable here.
+  if (product && !isVisibleProduct(product)) notFound();
 
   return (
     <>

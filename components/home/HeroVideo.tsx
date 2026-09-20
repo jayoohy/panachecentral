@@ -24,7 +24,7 @@ export function HeroVideo({ children }: { children?: ReactNode }) {
         playsInline
         preload="auto"
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
       />
       {children}
     </div>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LAUNCH_CATEGORIES } from "@/lib/constants";
+import { LAUNCH_CATEGORIES, isVisibleCategory } from "@/lib/constants";
 import { useCategories } from "@/hooks/useCategories";
 import { useCart } from "@/hooks/useCart";
 import { useAccount } from "@/hooks/useAccount";
@@ -29,9 +29,11 @@ export function Header() {
   const navLinks =
     categories && categories.length > 0
       ? categories
-          .filter((category) => !category.parentId)
+          .filter((category) => !category.parentId && isVisibleCategory(category))
           .map((category) => ({ label: category.name, href: `/shop/${category.slug}` }))
       : LAUNCH_CATEGORIES;
+
+  const mobileLinks = [{ label: "Home", href: "/" }, ...navLinks];
 
   return (
     <header className="sticky top-0 z-40 border-b border-bone/10 bg-onyx text-bone">
@@ -83,7 +85,7 @@ export function Header() {
         </div>
       </div>
 
-      <MobileNav links={navLinks} open={menuOpen} onNavigate={() => setMenuOpen(false)} />
+      <MobileNav links={mobileLinks} open={menuOpen} onNavigate={() => setMenuOpen(false)} />
     </header>
   );
 }

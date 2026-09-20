@@ -3,14 +3,16 @@ import { notFound } from "next/navigation";
 import { ShopView } from "@/components/commerce/ShopView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { CATEGORIES } from "@/lib/categories";
+import { isVisibleCategory } from "@/lib/constants";
 import { fetchCategories, fetchProductsPage } from "@/lib/duka/catalogue";
 import { breadcrumbSchema, collectionSchema } from "@/lib/seo/schema";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
-// Live categories when Duka answers, the static launch set otherwise.
+// Live categories when Duka answers, the static launch set otherwise. A hidden category (e.g.
+// Repairs, Watches) resolves as not-found here — that's what makes its route 404 everywhere.
 async function resolveCategory(slug: string) {
   const live = await fetchCategories();
-  const category = (live ?? CATEGORIES).find((c) => c.slug === slug);
+  const category = (live ?? CATEGORIES).find((c) => c.slug === slug && isVisibleCategory(c));
   return { live, category };
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { CartView } from "@/components/commerce/CartView";
 import { PageHeading } from "@/components/shared/PageHeading";
 
@@ -17,6 +18,8 @@ export function CartDrawer() {
   const pathname = usePathname();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerFocusRef = useRef<Element | null>(null);
+
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     closeDrawer();
@@ -56,7 +59,7 @@ export function CartDrawer() {
         tabIndex={-1}
         data-state={isOpen ? "open" : "closed"}
         onClick={(event) => event.stopPropagation()}
-        className="t-panel absolute right-0 top-0 flex h-full w-[92vw] max-w-md flex-col border-l border-bone/10 bg-onyx sm:w-[420px]"
+        className="t-panel absolute right-0 top-0 flex h-dvh w-[92vw] max-w-md flex-col border-l border-bone/10 bg-onyx sm:w-[420px]"
       >
         <div className="flex items-center justify-between px-6 py-5">
           <PageHeading compact>Your Cart</PageHeading>

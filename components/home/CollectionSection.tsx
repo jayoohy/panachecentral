@@ -5,7 +5,7 @@ import { Section } from "@/components/shared/Section";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionKicker } from "@/components/shared/SectionKicker";
-import { LAUNCH_CATEGORIES } from "@/lib/constants";
+import { LAUNCH_CATEGORIES, isVisibleCategory } from "@/lib/constants";
 import { useCategories } from "@/hooks/useCategories";
 import { CATEGORIES } from "@/lib/categories";
 
@@ -29,7 +29,7 @@ export function CollectionSection() {
   const tiles =
     categories && categories.length > 0
       ? categories
-          .filter((category) => !category.parentId)
+          .filter((category) => !category.parentId && isVisibleCategory(category))
           .map((c) => ({
             label: c.name,
             href: `/shop/${c.slug}`,
@@ -42,7 +42,7 @@ export function CollectionSection() {
   return (
     <Section id="collection" tone="onyx">
       <Reveal>
-        <SectionKicker>04 / The Collection</SectionKicker>
+        <SectionKicker>03 / The Collection</SectionKicker>
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading tone="onyx">The Collection</SectionHeading>
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-bone/60">

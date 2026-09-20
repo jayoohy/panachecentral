@@ -11,6 +11,7 @@ import { Pagination } from "@/components/commerce/Pagination";
 import { ProductCard } from "@/components/commerce/ProductCard";
 import { useCategories } from "@/hooks/useCategories";
 import { useProducts } from "@/hooks/useProducts";
+import { isVisibleCategory } from "@/lib/constants";
 import type { Category, Paginated, ProductSummary } from "@/lib/duka/types";
 
 /**
@@ -49,7 +50,7 @@ export function ShopView({
       </div>
 
       <div className="mt-10 flex flex-col gap-6 border-t border-bone/10 pt-8 sm:flex-row sm:items-end sm:justify-between">
-        <CategoryChips categories={categories ?? []} activeSlug={categorySlug} />
+        <CategoryChips categories={(categories ?? []).filter(isVisibleCategory)} activeSlug={categorySlug} />
         <div className="sm:w-72">
           <SearchField
             value={search}
@@ -62,7 +63,7 @@ export function ShopView({
       </div>
 
       {isLoading ? (
-        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-square animate-pulse bg-surface" />
           ))}
@@ -73,10 +74,10 @@ export function ShopView({
         </div>
       ) : (
         <>
-          <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
             {data.items.map((product, index) => (
               // Stagger every other column (Stitch asymmetric grid) — offsets follow the column count.
-              <Reveal key={product.id} delay={(index % 3) * 100} className="sm:even:mt-12 lg:even:mt-0 lg:[&:nth-child(3n+2)]:mt-12">
+              <Reveal key={product.id} delay={(index % 3) * 100} className="even:mt-12 lg:even:mt-0 lg:nth-[3n+2]:mt-12">
                 <ProductCard product={product} index={(data.page - 1) * data.items.length + index} />
               </Reveal>
             ))}

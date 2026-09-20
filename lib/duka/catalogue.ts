@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { isVisibleProduct } from "@/lib/constants";
 import { DukaApiError } from "./client";
 import { getProduct, listCategories, listProducts } from "./storefront";
 import type { Category, Paginated, ProductDetail, ProductSummary } from "./types";
@@ -33,7 +34,12 @@ export const fetchProduct = cache(async (slug: string): Promise<ProductDetail | 
 export const fetchProductsPage = cache(
   async (categoryId?: string, page = 1): Promise<Paginated<ProductSummary> | undefined> => {
     try {
-      return (await listProducts({ page, categoryId })).data;
+      const { data } = await listProducts({ page, categoryId });
+      // Hidden-category products (Repairs, Watches) are dropped from the rendered
+      // items; the API's own total/totalPages aren't recalculated, since it has no
+      // concept of these exclusions — an edge case worth knowing about, not fixable
+      // from here without backend support for excluding categories server-side.
+      return { ...data, items: data.items.filter(isVisibleProduct) };
     } catch (error) {
       console.error("fetchProductsPage failed", error);
       return undefined;
@@ -53,5 +59,5 @@ export async function fetchAllProducts(): Promise<ProductSummary[]> {
   } catch (error) {
     console.error("fetchAllProducts failed", error);
   }
-  return items;
+  return items.filter(isVisibleProduct);
 }

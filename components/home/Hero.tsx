@@ -24,8 +24,7 @@ export function Hero() {
                 <em className="italic">{TAGLINE_ACCENT}</em>
               </h1>
               <p className="hero-in mt-6 max-w-md [animation-delay:300ms] text-base font-light leading-[1.75] text-bone/90 sm:text-lg">
-                Each piece is chosen, not stocked, to sit beside gold and diamonds without looking
-                out of place.
+                Each piece is chosen, not stocked — selected for everyday wear.
               </p>
               <a
                 href="#collection"

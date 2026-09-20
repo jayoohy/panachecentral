@@ -12,17 +12,12 @@ const PILLARS = [
   {
     numeral: "II",
     title: "One Material Standard",
-    body: "Stainless steel, moissanite, and gold pieces are held to the same bar. There's no lower tier and no starter line.",
+    body: "Stainless steel, moissanite, and gold-plated pieces are held to the same bar.",
   },
   {
     numeral: "III",
-    title: "Made for the Long Wear",
-    body: "Pieces are built for daily wear and for handing down, not for one event and a drawer.",
-  },
-  {
-    numeral: "IV",
-    title: "Presentation Included",
-    body: "Every order arrives boxed and carded, not bagged.",
+    title: "Chosen for Daily Wear",
+    body: "Pieces are selected for everyday wear, not for one event and a drawer.",
   },
 ] as const;
 
@@ -32,14 +27,14 @@ export function BenefitsSection() {
       <Reveal>
         <SectionKicker>02 / The House Pillars</SectionKicker>
         <div className="mt-6 max-w-3xl">
-          <SectionHeading tone="onyx" accent="the Occasion">
-            Built to Outlast
+          <SectionHeading tone="onyx" accent="One Occasion">
+            Chosen for More Than
           </SectionHeading>
         </div>
       </Reveal>
-      <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-3">
         {PILLARS.map((pillar, index) => (
-          <Reveal key={pillar.title} delay={index * 100} className="sm:even:mt-12">
+          <Reveal key={pillar.title} delay={index * 100}>
           <article className="h-full border border-bone/10 bg-surface p-8 transition-colors duration-500 hover:border-gold/40">
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">{pillar.numeral}</p>
             <h3 className="mt-10 font-serif text-2xl leading-snug">{pillar.title}</h3>

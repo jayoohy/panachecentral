@@ -1,4 +1,5 @@
 import { CATEGORIES } from "@/lib/categories";
+import { isVisibleCategory, isVisibleProduct } from "@/lib/constants";
 import { fetchAllProducts, fetchCategories } from "@/lib/duka/catalogue";
 import { CURRENCY, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, absoluteUrl, truncate } from "@/lib/site";
 
@@ -6,7 +7,10 @@ import { CURRENCY, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, absoluteUrl, trunc
 // agents. Built from the live catalogue; only states what the storefront actually knows.
 export async function GET() {
   const [liveCategories, products] = await Promise.all([fetchCategories(), fetchAllProducts()]);
-  const categories = (liveCategories ?? CATEGORIES).filter((category) => !category.parentId);
+  const categories = (liveCategories ?? CATEGORIES).filter(
+    (category) => !category.parentId && isVisibleCategory(category)
+  );
+  const visibleProducts = products.filter(isVisibleProduct);
 
   const lines = [
     `# ${SITE_NAME}`,
@@ -22,7 +26,7 @@ export async function GET() {
     "",
     "## Products",
     "",
-    ...products.map(
+    ...visibleProducts.map(
       (product) =>
         `- [${product.name}](${absoluteUrl(`/products/${product.slug}`)})${
           product.category ? ` (${product.category.name})` : ""

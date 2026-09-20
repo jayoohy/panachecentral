@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isVisibleProduct } from "@/lib/constants";
 import { listProducts } from "@/lib/duka/storefront";
 import { handleRoute } from "@/lib/duka/route-helpers";
 
@@ -11,6 +12,9 @@ export async function GET(request: NextRequest) {
       categoryId: searchParams.get("categoryId") ?? undefined,
       search: searchParams.get("search") ?? undefined,
     });
-    return NextResponse.json(data);
+    // Hidden-category products (Repairs, Watches) are excluded from every listing —
+    // see lib/constants.ts isVisibleProduct. totalPages isn't recalculated (same
+    // caveat as lib/duka/catalogue.ts fetchProductsPage).
+    return NextResponse.json({ ...data, items: data.items.filter(isVisibleProduct) });
   });
 }

@@ -39,7 +39,7 @@ export function ProductDetailView({ slug, initialProduct }: { slug: string; init
 
   if (isLoading || !product) {
     return (
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 sm:px-10 lg:grid-cols-12 lg:px-16">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-10 lg:grid-cols-12 lg:px-16">
         <div className="aspect-square animate-pulse bg-surface lg:col-span-7" />
         <div className="space-y-4 lg:col-span-5">
           <div className="h-8 w-2/3 animate-pulse bg-surface" />
@@ -52,7 +52,7 @@ export function ProductDetailView({ slug, initialProduct }: { slug: string; init
   const displayVariant = selectedVariant ?? product.variants[0];
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 sm:px-10 lg:grid-cols-12 lg:gap-16 lg:px-16">
+    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-10 lg:grid-cols-12 lg:gap-16 lg:px-16">
       <div className="space-y-4 lg:col-span-7">
         <div className="aspect-square overflow-hidden border border-bone/10 bg-surface">
           {product.images[0] && (
@@ -78,7 +78,12 @@ export function ProductDetailView({ slug, initialProduct }: { slug: string; init
         {displayVariant && (
           <p className="mt-6 text-lg font-light tracking-[0.08em] text-bone">{formatMoney(displayVariant.priceMinorUnits)}</p>
         )}
-        <p className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80">{product.description}</p>
+        {/* product.description is HTML authored in the catalog (see docs/storefront-api.md), not
+            user-submitted — rendering it lets the store's own paragraph breaks show correctly. */}
+        <div
+          className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80 [&_p+p]:mt-4"
+          dangerouslySetInnerHTML={{ __html: product.description }}
+        />
 
         <div className="mt-8 border-t border-bone/10 pt-8">
           <VariantSelector

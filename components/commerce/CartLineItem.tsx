@@ -16,16 +16,18 @@ export function CartLineItem({
   onQuantityChange: (quantity: number) => void;
   pending?: boolean;
 }) {
-  const attributeSummary = Object.entries(item.attributeValues)
+  const attributeSummary = Object.entries(item.attributeValues ?? {})
     .map(([key, value]) => `${key}: ${value}`)
     .join(", ");
 
   return (
     <div className={`flex gap-4 py-4 transition-opacity ${pending ? "opacity-50" : ""}`}>
-      <div className="h-20 w-20 shrink-0 rounded-none bg-surface">
-        {item.thumbnail && (
+      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-none bg-surface">
+        {item.thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={item.thumbnail} alt="" className="h-full w-full rounded-none object-cover" />
+        ) : (
+          <ImagePlaceholderIcon />
         )}
       </div>
       <div className="flex flex-1 flex-col justify-between">
@@ -41,5 +43,15 @@ export function CartLineItem({
         </div>
       </div>
     </div>
+  );
+}
+
+function ImagePlaceholderIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-bone/25" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+      <circle cx="9" cy="10" r="1.5" />
+      <path d="M21 16.5 15.5 11 6 20" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

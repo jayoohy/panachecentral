@@ -6,10 +6,14 @@ import { useCheckout } from "@/hooks/useCheckout";
 import { useAccount } from "@/hooks/useAccount";
 import { useCartStore } from "@/lib/store/cart-store";
 import { ApiError } from "@/lib/api-client";
+import { formatOrderNumber } from "@/lib/format-order-status";
+import { CHECKOUT_MODE, GENERAL_INQUIRY_MESSAGE, buildOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 import { Button } from "@/components/shared/Button";
 import { FIELD_CLASS, FIELD_LABEL_CLASS } from "@/components/shared/field-styles";
 
 const LAST_ORDER_ID_KEY = "panache:lastOrderId";
+
+type CheckoutError = { kind: "api"; message: string } | { kind: "generic" };
 
 export function CheckoutForm() {
   const router = useRouter();
@@ -21,7 +25,7 @@ export function CheckoutForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<CheckoutError | null>(null);
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -40,6 +44,15 @@ export function CheckoutForm() {
       },
       {
         onSuccess: (order) => {
+          if (CHECKOUT_MODE === "whatsapp") {
+            // Popup blockers commonly stop window.open — the confirmation page
+            // repeats this same link as a visible fallback if it was blocked.
+            const message = buildOrderMessage(formatOrderNumber(order.id), account?.name ?? name);
+            window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+            router.push(`/order-confirmation?orderId=${order.id}`);
+            return;
+          }
+
           if (order.payment?.redirectUrl) {
             // The gateway's own redirect strips any query params we'd want
             // to add to returnUrl after the fact (we don't know the order id
@@ -55,11 +68,13 @@ export function CheckoutForm() {
           }
         },
         onError: (err) => {
-          setError(err instanceof ApiError ? err.message : "Something went wrong.");
+          setError(err instanceof ApiError ? { kind: "api", message: err.message } : { kind: "generic" });
         },
       }
     );
   }
+
+  const whatsapp = CHECKOUT_MODE === "whatsapp";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -75,7 +90,7 @@ export function CheckoutForm() {
               Log in for faster checkout.
             </a>
           </p>
-          <Field label="Name" value={name} onChange={setName} type="text" autoComplete="name" />
+          <Field label="Name" value={name} onChange={setName} type="text" autoComplete="name" required={whatsapp} />
           <Field label="Email" value={email} onChange={setEmail} type="email" autoComplete="email" />
           <Field label="Phone" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
         </>
@@ -83,13 +98,41 @@ export function CheckoutForm() {
 
       {error && (
         <p role="alert" className="text-sm text-(--color-error)">
-          {error}
+          {error.kind === "api" ? (
+            error.message
+          ) : whatsapp ? (
+            <>
+              Something went wrong. Please try again, or message us on{" "}
+              <a
+                href={buildWhatsAppLink(GENERAL_INQUIRY_MESSAGE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-gold"
+              >
+                WhatsApp
+              </a>
+              .
+            </>
+          ) : (
+            "Something went wrong."
+          )}
         </p>
       )}
 
       <Button type="submit" variant="primary-gold" className="w-full" loading={checkout.isPending}>
-        {checkout.isPending ? "Placing Order…" : "Place Order"}
+        {whatsapp
+          ? checkout.isPending
+            ? "Opening WhatsApp…"
+            : "Continue on WhatsApp"
+          : checkout.isPending
+            ? "Placing Order…"
+            : "Place Order"}
       </Button>
+      {whatsapp && (
+        <p className="text-center text-xs text-bone/60">
+          We&apos;ll open WhatsApp so you can confirm your order with us directly.
+        </p>
+      )}
     </form>
   );
 }
@@ -100,12 +143,14 @@ function Field({
   onChange,
   type,
   autoComplete,
+  required,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type: string;
   autoComplete: string;
+  required?: boolean;
 }) {
   const id = `checkout-${label.toLowerCase()}`;
   return (
@@ -117,6 +162,7 @@ function Field({
         id={id}
         type={type}
         autoComplete={autoComplete}
+        required={required}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={`mt-1 ${FIELD_CLASS}`}

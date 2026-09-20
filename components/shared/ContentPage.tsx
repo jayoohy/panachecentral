@@ -6,7 +6,7 @@ import { buttonClassName } from "@/components/shared/Button";
 export type ContentSection = { heading: string; paragraphs: string[] };
 
 /**
- * Editorial long-form page (About, Care & Materials, policies): kicker + Playfair
+ * Editorial long-form page (About, policies): kicker + Playfair
  * title, then one hairline-separated row per section — label left, prose right
  * (Stitch asymmetric 12-column grid). Copy is passed in, never written here.
  */
@@ -46,7 +46,7 @@ export function ContentPage({
 
       <div className="mt-20 border-t border-bone/10">
         {sections.map((section, index) => (
-          <Reveal key={section.heading} className="grid gap-6 border-b border-bone/10 py-12 lg:grid-cols-12 lg:gap-10">
+          <Reveal key={section.heading} className="grid grid-cols-1 gap-6 border-b border-bone/10 py-12 lg:grid-cols-12 lg:gap-10">
             <div className="lg:col-span-4">
               <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">
                 {String(index + 1).padStart(2, "0")}

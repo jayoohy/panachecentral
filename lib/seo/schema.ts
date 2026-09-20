@@ -2,7 +2,7 @@ import type { ProductDetail, ProductSummary } from "@/lib/duka/types";
 import { CURRENCY, LOGO_PATH, SITE_DESCRIPTION, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 // schema.org builders. Only facts the storefront actually holds go in here — no invented
-// ratings, reviews, sameAs profiles or shipping/return policies (those pages are still stubs).
+// ratings, reviews, sameAs profiles, or shipping/return policies (the site makes no such claims).
 
 type JsonLd = Record<string, unknown>;
 

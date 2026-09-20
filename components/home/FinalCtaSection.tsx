@@ -8,7 +8,7 @@ import { TAGLINE_ACCENT, TAGLINE_LEAD } from "@/lib/constants";
 export function FinalCtaSection() {
   return (
     <Section tone="bone">
-      <div className="grid gap-10 lg:grid-cols-12 lg:items-end">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-end">
         <Reveal className="lg:col-span-7">
           <SectionHeading tone="bone" accent={TAGLINE_ACCENT}>
             {TAGLINE_LEAD}
@@ -16,7 +16,7 @@ export function FinalCtaSection() {
         </Reveal>
         <Reveal delay={150} className="lg:col-span-4 lg:col-start-9">
           <p className="text-lg font-light leading-[1.75]">
-            Pieces built to hold their place beside gold and diamonds, not just beside each other.
+            Pieces chosen one by one, for everyday wear.
           </p>
           <Link href="/shop" className={buttonClassName("primary-onyx", "mt-8")}>
             Shop the Collection

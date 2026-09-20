@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/commerce/CartDrawer";
+import { QuickViewModal } from "@/components/commerce/QuickViewModal";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -27,7 +28,7 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Panache Central | Fine Jewelry, Made to Last", template: `%s | ${SITE_NAME}` },
+  title: { default: "Panache Central | Luxury Jewelry, Chosen to Last", template: `%s | ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   manifest: "/logo/site.webmanifest",
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE_NAME,
     locale: "en_NG",
-    title: "Panache Central | Fine Jewelry, Made to Last",
+    title: "Panache Central | Luxury Jewelry, Chosen to Last",
     description: SITE_DESCRIPTION,
   },
   twitter: { card: "summary_large_image" },
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
+          <QuickViewModal />
         </Providers>
       </body>
     </html>
