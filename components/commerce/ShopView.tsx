@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionKicker } from "@/components/shared/SectionKicker";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { CategoryChips } from "@/components/commerce/CategoryChips";
 import { SearchField } from "@/components/commerce/SearchField";
 import { Pagination } from "@/components/commerce/Pagination";
@@ -31,6 +32,18 @@ export function ShopView({
   const [search, setSearch] = useState("");
   const { data: categories } = useCategories(initialCategories);
   const activeCategory = categories?.find((category) => category.slug === categorySlug);
+  const topRef = useRef<HTMLDivElement>(null);
+
+  // Page-change previously left the visitor scrolled at the pagination control, looking
+  // at the outgoing results until they scrolled back up manually (audit F7).
+  function handlePageChange(nextPage: number) {
+    setPage(nextPage);
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const breadcrumbItems = activeCategory
+    ? [{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: activeCategory.name }]
+    : [{ label: "Home", href: "/" }, { label: "Shop" }];
 
   // The server-rendered first page only applies to the unfiltered, unsearched view.
   const { data, isLoading } = useProducts(
@@ -43,7 +56,8 @@ export function ShopView({
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16">
+    <div ref={topRef} className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16">
+      <Breadcrumbs items={breadcrumbItems} />
       <SectionKicker>{activeCategory ? "The Collection" : "Shop the House"}</SectionKicker>
       <div className="mt-6">
         <PageHeading>{activeCategory ? activeCategory.name : "The Collection"}</PageHeading>
@@ -82,7 +96,7 @@ export function ShopView({
               </Reveal>
             ))}
           </div>
-          <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
+          <Pagination page={data.page} totalPages={data.totalPages} onPageChange={handlePageChange} />
         </>
       )}
     </div>

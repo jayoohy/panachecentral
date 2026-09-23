@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccountOrders } from "@/hooks/useAccountOrders";
 import { useCartStore } from "@/lib/store/cart-store";
@@ -15,15 +15,21 @@ export default function AccountOrdersPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const { data, isLoading } = useAccountOrders(page);
+  const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoggedIn) router.replace("/account/login?redirect=/account/orders");
   }, [isLoggedIn, router]);
 
+  function handlePageChange(nextPage: number) {
+    setPage(nextPage);
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   if (!isLoggedIn) return null;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16 sm:px-10">
+    <div ref={topRef} className="mx-auto max-w-2xl px-6 py-16 sm:px-10">
       <PageHeading>My Account</PageHeading>
       <div className="mt-6">
         <AccountNav />
@@ -46,7 +52,7 @@ export default function AccountOrdersPage() {
             {data.items.map((order) => (
               <OrderHistoryRow key={order.id} order={order} />
             ))}
-            <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
+            <Pagination page={data.page} totalPages={data.totalPages} onPageChange={handlePageChange} />
           </>
         )}
       </div>

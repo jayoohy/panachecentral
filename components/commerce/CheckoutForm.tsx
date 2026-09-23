@@ -157,6 +157,7 @@ function Field({
     <div>
       <label htmlFor={id} className={FIELD_LABEL_CLASS}>
         {label}
+        {!required && <span className="text-bone/40"> (optional)</span>}
       </label>
       <input
         id={id}

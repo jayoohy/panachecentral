@@ -76,15 +76,21 @@ function OrderConfirmationContent() {
         </div>
       )}
       <div className="text-center">
-        <PageHeading>{whatsapp ? "Thank you. We've received your order." : "Thank you. Your order is confirmed."}</PageHeading>
+        <PageHeading>{whatsapp ? "Almost done — confirm on WhatsApp." : "Thank you. Your order is confirmed."}</PageHeading>
         <p className="mt-2 text-sm text-bone/60">{formatOrderReference(order.id)}</p>
         {whatsapp ? (
           <div className="mt-6">
+            {/* Order status here reflects "saved," not "confirmed" — the order isn't
+                actually acted on until this message reaches us (audit F5). */}
+            <p className="mx-auto max-w-sm text-sm text-bone/70">
+              We&apos;ve saved your order. Send the message below on WhatsApp so we can confirm it
+              with you directly.
+            </p>
             <a
               href={buildWhatsAppLink(buildOrderMessage(formatOrderNumber(order.id), order.customerName ?? account?.name))}
               target="_blank"
               rel="noopener noreferrer"
-              className={buttonClassName("primary-gold")}
+              className={buttonClassName("primary-gold", "mt-6")}
             >
               Continue on WhatsApp
             </a>

@@ -212,7 +212,8 @@ html[data-preload="active"] .hero-in {
 /* Error state shake — invalid form fields, coupon errors. */
 .t-shake[data-shaking="true"],
 [data-shaking="true"] .t-shake {
-  animation: shake-x calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2) var(--shake-ease);
+  animation: shake-x calc(var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2)
+    var(--shake-ease);
 }
 @keyframes shake-x {
   0%,
@@ -228,6 +229,14 @@ html[data-preload="active"] .hero-in {
   75% {
     transform: translateX(calc(var(--shake-distance) * -0.5));
   }
+}
+
+/* Product gallery swipe/slide (components/commerce/ProductGallery.tsx) — reuses the
+   panel-reveal timing (same weighted, no-springs curve as the cart drawer) since a
+   slide settling into place is the same motion, just horizontal. Disabled during an
+   active drag so the track tracks the pointer 1:1 with no lag (see the component). */
+.t-gallery-slide {
+  transition: transform var(--panel-open-dur) var(--panel-ease);
 }
 
 /* Success check — order confirmation payment-paid moment. */
@@ -249,5 +258,59 @@ html[data-preload="active"] .hero-in {
 @keyframes success-path {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+@layer components {
+  #page-body img {
+    @apply w-full;
+  }
+  #page-body p,
+  #product-body p {
+    @apply text-base font-normal wrap-break-word;
+  }
+  #page-body h1,
+  #product-body h1 {
+    @apply text-xl lg:text-3xl font-bold text-bone dark:text-white;
+  }
+
+  #page-body h2,
+  #product-body h2 {
+    @apply text-lg lg:text-2xl font-bold text-bone dark:text-white;
+  }
+
+  #page-body h3,
+  #product-body h3 {
+    @apply text-lg lg:text-xl font-bold text-bone dark:text-white;
+  }
+
+  #page-body h4,
+  #product-body h4 {
+    @apply text-base lg:text-lg font-bold text-bone dark:text-white;
+  }
+
+  #page-body h5,
+  #product-body h5 {
+    @apply text-base lg:text-base font-bold text-bone dark:text-white;
+  }
+
+  #page-body h6,
+  #product-body h6 {
+    @apply text-sm lg:text-base font-bold text-bone dark:text-white;
+  }
+  #page-body ol,
+  #product-body ol {
+    @apply list-disc pl-6;
+  }
+  #page-body ol li.ql-indent-1,
+  #product-body ol li.ql-indent-1,
+  #page-body ul li.ql-indent-1,
+  #product-body ul li.ql-indent-1 {
+    @apply pl-6;
+  }
+
+  #page-body ul,
+  #product-body ul {
+    @apply list-disc pl-6;
   }
 }

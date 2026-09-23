@@ -8,31 +8,50 @@ import { useCart, useUpdateCartItem } from "@/hooks/useCart";
 import { formatMoney } from "@/lib/format-money";
 import { VariantSelector } from "@/components/commerce/VariantSelector";
 import { AddToCartButton } from "@/components/commerce/AddToCartButton";
+import { ProductGallery } from "@/components/commerce/ProductGallery";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { SectionKicker } from "@/components/shared/SectionKicker";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import type { ProductDetail, ProductVariant } from "@/lib/duka/types";
 
 function resolveVariant(
   variants: ProductVariant[],
-  selectedAttributes: Record<string, string>
+  selectedAttributes: Record<string, string>,
 ): ProductVariant | undefined {
   return variants.find((variant) =>
-    Object.entries(selectedAttributes).every(([key, value]) => variant.attributeValues[key] === value)
+    Object.entries(selectedAttributes).every(
+      ([key, value]) => variant.attributeValues[key] === value,
+    ),
   );
 }
 
 // initialProduct comes from the server page so the full product HTML is in the first response
 // (crawlers that skip JavaScript, including most LLM bots, would otherwise only see the skeleton).
-export function ProductDetailView({ slug, initialProduct }: { slug: string; initialProduct?: ProductDetail }) {
-  const { data: product, isLoading, isError } = useProduct(slug, initialProduct);
+export function ProductDetailView({
+  slug,
+  initialProduct,
+}: {
+  slug: string;
+  initialProduct?: ProductDetail;
+}) {
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useProduct(slug, initialProduct);
   const cartId = useCartStore((state) => state.cartId);
   const { cart } = useCart();
   const updateItem = useUpdateCartItem();
-  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string>
+  >({});
 
   const selectedVariant = useMemo(
-    () => (product ? resolveVariant(product.variants, selectedAttributes) : undefined),
-    [product, selectedAttributes]
+    () =>
+      product
+        ? resolveVariant(product.variants, selectedAttributes)
+        : undefined,
+    [product, selectedAttributes],
   );
 
   if (isError) notFound();
@@ -51,69 +70,82 @@ export function ProductDetailView({ slug, initialProduct }: { slug: string; init
 
   const displayVariant = selectedVariant ?? product.variants[0];
 
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/shop" },
+    ...(product.category
+      ? [
+          {
+            label: product.category.name,
+            href: `/shop/${product.category.slug}`,
+          },
+        ]
+      : []),
+    { label: product.name },
+  ];
+
   return (
-    <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-16 sm:px-10 lg:grid-cols-12 lg:gap-16 lg:px-16">
-      <div className="space-y-4 lg:col-span-7">
-        <div className="aspect-square overflow-hidden border border-bone/10 bg-surface">
-          {product.images[0] && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
-          )}
+    <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16">
+      <Breadcrumbs items={breadcrumbItems} />
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="lg:col-span-7">
+          <ProductGallery images={product.images} productName={product.name} />
         </div>
-        {product.images.length > 1 && (
-          <div className="grid grid-cols-4 gap-4">
-            {product.images.slice(1).map((src) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={src} src={src} alt="" className="aspect-square border border-bone/10 object-cover" />
-            ))}
+
+        <div className="lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
+          {product.category && (
+            <SectionKicker>{product.category.name}</SectionKicker>
+          )}
+          <div className="mt-4">
+            <PageHeading>{product.name}</PageHeading>
           </div>
-        )}
-      </div>
-
-      <div className="lg:sticky lg:top-24 lg:col-span-5 lg:self-start">
-        {product.category && <SectionKicker>{product.category.name}</SectionKicker>}
-        <div className="mt-4">
-          <PageHeading>{product.name}</PageHeading>
-        </div>
-        {displayVariant && (
-          <p className="mt-6 text-lg font-light tracking-[0.08em] text-bone">{formatMoney(displayVariant.priceMinorUnits)}</p>
-        )}
-        {/* product.description is HTML authored in the catalog (see docs/storefront-api.md), not
-            user-submitted — rendering it lets the store's own paragraph breaks show correctly. */}
-        <div
-          className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80 [&_p+p]:mt-4"
-          dangerouslySetInnerHTML={{ __html: product.description }}
-        />
-
-        <div className="mt-8 border-t border-bone/10 pt-8">
-          <VariantSelector
-            variants={product.variants}
-            selectedAttributes={selectedAttributes}
-            onSelectAttribute={(key, value) =>
-              setSelectedAttributes((prev) => ({ ...prev, [key]: value }))
-            }
-          />
-        </div>
-
-        <div className="mt-8">
-          <AddToCartButton
-            outOfStock={!displayVariant || displayVariant.stock === 0}
-            loading={updateItem.isPending}
-            onAdd={() => {
-              if (!cartId || !displayVariant) return;
-              // PATCH sets an absolute quantity, not a delta (docs/storefront-api.md
-              // §5.6) — increment from whatever's already in the cart for this variant.
-              const existingQuantity =
-                cart?.items.find((item) => item.productVariantId === displayVariant.id)?.quantity ?? 0;
-              return updateItem.mutateAsync({
-                productVariantId: displayVariant.id,
-                quantity: existingQuantity + 1,
-              });
-            }}
-          />
-          {displayVariant && displayVariant.stock === 0 && (
-            <p className="mt-3 text-xs text-bone/60">This option is currently unavailable.</p>
+          {displayVariant && (
+            <p className="mt-6 text-lg font-light tracking-[0.08em] text-bone">
+              {formatMoney(displayVariant.priceMinorUnits)}
+            </p>
           )}
+          {/* product.description is HTML authored in the catalog (see docs/storefront-api.md), not
+              user-submitted — rendering it lets the store's own paragraph breaks show correctly. */}
+          <div
+            className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80 [&_p+p]:mt-4"
+            dangerouslySetInnerHTML={{ __html: product.description }}
+            id="product-body"
+          />
+
+          <div className="mt-8 border-t border-bone/10 pt-8">
+            <VariantSelector
+              variants={product.variants}
+              selectedAttributes={selectedAttributes}
+              onSelectAttribute={(key, value) =>
+                setSelectedAttributes((prev) => ({ ...prev, [key]: value }))
+              }
+            />
+          </div>
+
+          <div className="mt-8">
+            <AddToCartButton
+              outOfStock={!displayVariant || displayVariant.stock === 0}
+              loading={updateItem.isPending}
+              onAdd={() => {
+                if (!cartId || !displayVariant) return;
+                // PATCH sets an absolute quantity, not a delta (docs/storefront-api.md
+                // §5.6) — increment from whatever's already in the cart for this variant.
+                const existingQuantity =
+                  cart?.items.find(
+                    (item) => item.productVariantId === displayVariant.id,
+                  )?.quantity ?? 0;
+                return updateItem.mutateAsync({
+                  productVariantId: displayVariant.id,
+                  quantity: existingQuantity + 1,
+                });
+              }}
+            />
+            {displayVariant && displayVariant.stock === 0 && (
+              <p className="mt-3 text-xs text-bone/60">
+                This option is currently unavailable.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

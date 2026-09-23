@@ -62,6 +62,7 @@ export function AuthForm({
         <div key={field.name}>
           <label htmlFor={field.name} className={FIELD_LABEL_CLASS}>
             {field.label}
+            {!field.required && <span className="text-bone/40"> (optional)</span>}
           </label>
           <input
             id={field.name}

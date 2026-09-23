@@ -64,21 +64,30 @@ export function CollectionSection() {
             >
               <Link
                 href={tile.href}
-                className={`group flex aspect-3/4 flex-col justify-between border border-bone/10 bg-surface p-5 transition-colors duration-500 hover:border-gold sm:p-6 bg-blend-overlay`}
+                className="group relative flex aspect-3/4 flex-col justify-between overflow-hidden border border-bone/10 bg-surface p-5 transition-colors duration-500 hover:border-gold sm:p-6"
                 style={{
                   backgroundImage: ctgyImage ? `url(${ctgyImage})` : undefined,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
               >
-                <span className="text-xs font-medium uppercase tracking-[0.22em] text-bone/60">
+                {/* Contrast guard so the label reads over any category photo, not just dark
+                    ones — same technique as Hero.tsx's scrim (audit F4: bg-blend-overlay alone
+                    had nothing to blend against and was a no-op). */}
+                {ctgyImage && (
+                  <div
+                    className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.1)_0%,rgba(10,10,10,0.75)_100%)]"
+                    aria-hidden="true"
+                  />
+                )}
+                <span className="relative text-xs font-medium uppercase tracking-[0.22em] text-bone/60 [text-shadow:0_1px_8px_rgba(10,10,10,0.8)]">
                   No. {String(index + 1).padStart(2, "0")} / {tile.label}
                 </span>
-                <span>
-                  <span className="block font-serif text-2xl sm:text-3xl">
+                <span className="relative">
+                  <span className="block font-serif text-2xl sm:text-3xl [text-shadow:0_2px_12px_rgba(10,10,10,0.75)]">
                     {tile.label}
                   </span>
-                  <span className="mt-3 block text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-gold">
+                  <span className="mt-3 block text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-gold [text-shadow:0_1px_8px_rgba(10,10,10,0.6)]">
                     Shop {tile.label} <span aria-hidden="true">→</span>
                   </span>
                 </span>

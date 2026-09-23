@@ -12,7 +12,7 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { CartBadge } from "@/components/commerce/CartBadge";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { MenuIcon } from "@/components/layout/MenuIcon";
-import { MobileNav } from "@/components/layout/MobileNav";
+import { MobileNav, type MobileNavItem } from "@/components/layout/MobileNav";
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,7 +33,19 @@ export function Header() {
           .map((category) => ({ label: category.name, href: `/shop/${category.slug}` }))
       : LAUNCH_CATEGORIES;
 
-  const mobileLinks = [{ label: "Home", href: "/" }, ...navLinks];
+  // Below `sm`, AccountMenu is hidden entirely (see its own comment) — account/orders/logout
+  // ride along in the mobile menu instead of being unreachable there (audit F1).
+  const mobileLinks: MobileNavItem[] = [
+    { label: "Home", href: "/" },
+    ...navLinks,
+    ...(isLoggedIn
+      ? [
+          { label: "My Account", href: "/account" },
+          { label: "My Orders", href: "/account/orders" },
+          { label: "Log Out", onClick: () => logout.mutate() },
+        ]
+      : [{ label: "Log In", href: "/account/login" }]),
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-bone/10 bg-onyx text-bone">

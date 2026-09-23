@@ -6,18 +6,26 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 const EASE = "[transition-timing-function:var(--reveal-ease)]";
 
+const ITEM_CLASS = "text-sm font-semibold uppercase tracking-[0.18em] text-bone/80 transition-colors hover:text-gold";
+
+export type MobileNavItem = { label: string; href: string } | { label: string; onClick: () => void };
+
 /**
  * Full-screen nav overlay for viewports below xl. Positioned `absolute` inside the
  * `sticky` header so it starts exactly below the header row (whatever that height is)
  * without needing to measure it in JS, and stays pinned with the header when it sticks.
  * `inert` keeps the collapsed links out of tab order and screen readers.
+ *
+ * Items are either a route (`href`) or an action (`onClick`, e.g. "Log Out") — the
+ * desktop AccountMenu has both, and below `sm` it's otherwise unreachable (audit F1),
+ * so the account section rides along in this same list instead of a second overlay.
  */
 export function MobileNav({
   links,
   open,
   onNavigate,
 }: {
-  links: { label: string; href: string }[];
+  links: MobileNavItem[];
   open: boolean;
   onNavigate: () => void;
 }) {
@@ -49,13 +57,22 @@ export function MobileNav({
                 open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
               }`}
             >
-              <Link
-                href={link.href}
-                onClick={onNavigate}
-                className="text-sm font-semibold uppercase tracking-[0.18em] text-bone/80 transition-colors hover:text-gold"
-              >
-                {link.label}
-              </Link>
+              {"href" in link ? (
+                <Link href={link.href} onClick={onNavigate} className={ITEM_CLASS}>
+                  {link.label}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    link.onClick();
+                    onNavigate();
+                  }}
+                  className={`block w-full text-left ${ITEM_CLASS}`}
+                >
+                  {link.label}
+                </button>
+              )}
             </li>
           ))}
         </ul>

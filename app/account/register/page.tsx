@@ -21,7 +21,7 @@ export default function RegisterPage() {
           fields={[
             { name: "name", label: "Name", type: "text", autoComplete: "name", required: true },
             { name: "email", label: "Email", type: "email", autoComplete: "email", required: true },
-            { name: "phone", label: "Phone (optional)", type: "tel", autoComplete: "tel" },
+            { name: "phone", label: "Phone", type: "tel", autoComplete: "tel" },
             {
               name: "password",
               label: "Password",

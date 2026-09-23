@@ -15,6 +15,7 @@ export function ContentPage({
   title,
   accent,
   intro,
+  notice,
   sections,
   cta,
 }: {
@@ -23,6 +24,8 @@ export function ContentPage({
   /** Set in italic after the title, e.g. "About *the House*" */
   accent?: string;
   intro?: string;
+  /** Bordered callout below intro — e.g. flagging a policy page as a legal-review draft. */
+  notice?: string;
   sections: ContentSection[];
   cta?: { label: string; href: string };
 }) {
@@ -41,6 +44,11 @@ export function ContentPage({
         </h1>
         {intro && (
           <p className="mt-8 max-w-[65ch] text-lg font-light leading-[1.75] text-bone/85">{intro}</p>
+        )}
+        {notice && (
+          <p className="mt-8 max-w-[65ch] border border-gold/40 bg-surface px-5 py-4 text-sm leading-[1.65] text-bone/80">
+            {notice}
+          </p>
         )}
       </Reveal>
 
