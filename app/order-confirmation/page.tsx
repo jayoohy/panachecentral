@@ -9,6 +9,7 @@ import { formatOrderNumber, formatOrderReference } from "@/lib/format-order-stat
 import { CHECKOUT_MODE, buildOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 import { PaymentStatusBadge, FulfillmentStatusBadge } from "@/components/commerce/StatusBadges";
 import { OrderSummaryPanel } from "@/components/commerce/OrderSummaryPanel";
+import { FulfilmentDetails } from "@/components/commerce/FulfilmentDetails";
 import { SuccessCheck } from "@/components/commerce/SuccessCheck";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { buttonClassName } from "@/components/shared/Button";
@@ -120,7 +121,8 @@ function OrderConfirmationContent() {
         )}
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 space-y-4">
+        <FulfilmentDetails order={order} />
         <OrderSummaryPanel source={order} />
       </div>
     </div>

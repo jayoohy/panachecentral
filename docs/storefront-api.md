@@ -11,6 +11,34 @@ client — see [MCP Tenant Copilot](./mcp-api.md).
 
 Live interactive spec: `GET /api/docs` (Swagger UI) on the API host.
 
+## Changelog
+
+**2026-09 — storefront readiness** (`docs/pm/storefront-readiness-prd.md`)
+
+Breaking changes (update your storefront before deploying against this):
+
+- **`POST /checkout` now requires `fulfilmentMethod`** (`"delivery"` or
+  `"pickup"`), plus a delivery address or a pickup location (§5.9). A request
+  without it fails with `400 "Choose delivery or pickup."`.
+- **Product responses no longer include `status` or variant `barcode`**
+  (§5.2, §5.3). `status` was always `"active"`; `barcode` is a till/label code.
+
+Additions (no action needed):
+
+- `GET /store` and `GET /pickup-locations` (§5.17, §5.18).
+- Product list: `sort`, `featured`, price / stock / attribute / brand filters,
+  `categorySlug`, subcategories included, wider search (§5.2).
+- Category detail by slug, attribute labels and colour hex codes (§5.1, §5.19).
+- Product sale discounts: sale price, regular price and a ready-made label on
+  list, detail, cart and order lines (§5.2, §5.3, §5.4, §5.10).
+- Specifications, SEO fields, tags, brand, variant images, ratings (§5.3).
+- Related products, reviews, wishlist, saved addresses, profile and password,
+  back-in-stock alerts (§5.20–§5.23, §5.16).
+- Orders carry the fulfilment method, the address or pickup location, the
+  delivery fee or note, and courier/tracking once dispatched (§5.10).
+
+---
+
 ## 1. Base URL & tenant resolution
 
 Every request must resolve to exactly one tenant (store). The API picks the
@@ -128,10 +156,29 @@ Response `200`:
     "name": "Electronics",
     "slug": "electronics-a1b2",
     "createdAt": "2026-01-01T00:00:00.000Z",
-    "updatedAt": "2026-01-01T00:00:00.000Z"
+    "updatedAt": "2026-01-01T00:00:00.000Z",
+    "attributes": [
+      {
+        "key": "size",
+        "label": "Size",
+        "type": "select",
+        "options": [{ "value": "S" }, { "value": "M" }]
+      },
+      {
+        "key": "colour",
+        "label": "Colour",
+        "type": "color",
+        "options": [{ "value": "Navy", "hex": "#000080" }]
+      }
+    ]
   }
 ]
 ```
+
+`attributes` are the category's variant options, in display order. Use
+`label` for the option name shown to shoppers (never the raw `key`), and `hex`
+to draw colour swatches (present only on `color` attributes, for colours the
+platform knows).
 
 `tenantId` isn't returned — every request is already scoped to one tenant, so
 it would just be the same value on every row. `archived` isn't returned
@@ -149,12 +196,25 @@ GET /api/storefront/v1/catalogue/products
 
 Query params (all optional):
 
-| Param        | Type   | Default | Notes                                            |
-| ------------ | ------ | ------- | ------------------------------------------------ |
-| `page`       | number | `1`     |                                                  |
-| `pageSize`   | number | `20`    | capped at 100                                    |
-| `categoryId` | uuid   | —       | filter to one category                           |
-| `search`     | string | —       | case-insensitive substring match on product name |
+| Param                   | Type   | Default | Notes                                                                                                                                 |
+| ----------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `page`                  | number | `1`     |                                                                                                                                       |
+| `pageSize`              | number | `20`    | capped at 100                                                                                                                         |
+| `categoryId`            | uuid   | —       | filter to a category **and every category beneath it**                                                                                |
+| `categorySlug`          | string | —       | same as `categoryId`, by slug                                                                                                         |
+| `search`                | string | —       | case-insensitive match on name, description, category name or tags, or an exact SKU                                                   |
+| `sort`                  | string | `name`  | `name`, `newest`, `best_selling`, `price_asc`, `price_desc`. Anything else is `400`                                                   |
+| `featured`              | `true` | —       | only the merchant's featured products, in their chosen order                                                                          |
+| `minPrice` / `maxPrice` | number | —       | minor units; some variant's **sale** price is in range                                                                                |
+| `inStock`               | `true` | —       | only products with a variant that has stock                                                                                           |
+| `attr[<key>]`           | string | —       | variant option, e.g. `attr[size]=M`. Repeat a key for OR (`attr[size]=M&attr[size]=L`); different keys must all match **one** variant |
+| `brand`                 | string | —       | exact brand, ignoring case                                                                                                            |
+
+- `newest` sorts by when the product was first published, not created.
+- `best_selling` ranks by units sold on paid orders (online and in-store) in
+  the last 30 days, net of refunds; ties and unsold products follow newest first.
+- Price sorts and price filters use the price shoppers pay right now, after
+  any sale discount.
 
 Only `status: "active"` products are ever returned — draft/archived products
 never appear here, so you don't need to filter client-side.
@@ -175,7 +235,9 @@ Response `200`:
       "name": "Wireless Mouse",
       "slug": "wireless-mouse-x7k2",
       "description": "...",
-      "status": "active",
+      "featured": true,
+      "publishedAt": "2026-01-01T00:00:00.000Z",
+      "brand": "Logi",
       "category": {
         "id": "uuid",
         "name": "Electronics",
@@ -183,9 +245,19 @@ Response `200`:
       },
       "thumbnail": "https://.../mouse-front.jpg",
       "images": ["https://.../mouse-front.jpg", "https://.../mouse-side.jpg"],
-      "minPriceMinorUnits": 1500000,
-      "maxPriceMinorUnits": 1800000,
+      "minPriceMinorUnits": 1200000,
+      "maxPriceMinorUnits": 1440000,
+      "regularMinPriceMinorUnits": 1500000,
+      "regularMaxPriceMinorUnits": 1800000,
+      "discount": {
+        "type": "percent",
+        "value": 20,
+        "label": "20% off",
+        "endsAt": null
+      },
       "stock": 42,
+      "averageRating": 4.3,
+      "reviewCount": 12,
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
     }
@@ -208,6 +280,13 @@ image without a detail call. `minPriceMinorUnits` / `maxPriceMinorUnits` are
 the cheapest and priciest variant prices (equal for a single-variant
 product; both `null` if the product has no variants yet). Show "From X" when
 they differ.
+
+**Sales:** while a product is on sale, `minPriceMinorUnits` /
+`maxPriceMinorUnits` are the **sale** prices (what the shopper pays), and
+`regularMinPriceMinorUnits` / `regularMaxPriceMinorUnits` plus `discount`
+are present — show the regular price crossed out and `discount.label`
+("20% off", "₦2,000 off") as a badge. With no active sale those three fields
+are absent. `averageRating` is `null` when a product has no reviews.
 
 `stock` is the total units on hand across all of the product's variants and
 locations (never negative). Use it for an "In stock / Sold out" badge on the
@@ -238,25 +317,65 @@ Response `200`:
   "name": "Wireless Mouse",
   "slug": "wireless-mouse-x7k2",
   "description": "...",
-  "status": "active",
+  "specifications": [{ "key": "Material", "value": "Aluminium" }],
+  "metaTitle": "Wireless Mouse",
+  "metaDescription": "A quiet wireless mouse…",
+  "tags": ["office"],
+  "brand": "Logi",
+  "featured": false,
+  "publishedAt": "2026-01-01T00:00:00.000Z",
+  "averageRating": 4.3,
+  "reviewCount": 12,
+  "discount": {
+    "type": "percent",
+    "value": 20,
+    "label": "20% off",
+    "endsAt": null
+  },
   "category": {
     "id": "uuid",
     "name": "Electronics",
     "slug": "electronics-a1b2"
   },
   "images": ["https://.../mouse-front.jpg", "https://.../mouse-side.jpg"],
+  "attributes": [
+    {
+      "key": "color",
+      "label": "Colour",
+      "type": "color",
+      "options": [{ "value": "Black", "hex": "#000000" }]
+    }
+  ],
   "variants": [
     {
       "id": "uuid",
       "sku": "WM-BLK-001",
-      "barcode": "123456789012",
-      "priceMinorUnits": 1500000,
+      "priceMinorUnits": 1200000,
+      "regularPriceMinorUnits": 1500000,
+      "discount": {
+        "type": "percent",
+        "value": 20,
+        "label": "20% off",
+        "endsAt": null
+      },
       "attributeValues": { "color": "Black" },
+      "imageUrl": "https://.../mouse-black.jpg",
       "stock": 42
     }
   ]
 }
 ```
+
+- `specifications` only includes entries with a value, in the merchant's order.
+- `metaTitle` / `metaDescription` fall back to the name and a plain-text
+  excerpt of the description when the merchant hasn't set them.
+- `attributes` labels every option key the variants use, with the values on
+  offer (and `hex` for colours) — build the option picker from this.
+- Variant `imageUrl` is the photo for that option, or `null`: swap the main
+  image to it when the shopper picks the option.
+- `priceMinorUnits` is what the shopper pays; `regularPriceMinorUnits` and
+  `discount` appear only while the product is on sale. Archived variants are
+  never returned.
 
 `images` is every uploaded product image, in display order (first is the
 same one used as `thumbnail` on the list endpoint) — empty array if none.
@@ -324,8 +443,10 @@ Each entry in `items` (once the cart has lines) looks like:
   "image": "https://.../mouse-front.jpg",
   "quantity": 2,
   "stock": 42,
-  "unitPriceMinorUnits": 1500000,
-  "lineSubtotalMinorUnits": 3000000,
+  "unitPriceMinorUnits": 1200000,
+  "regularUnitPriceMinorUnits": 1500000,
+  "discountLabel": "20% off",
+  "lineSubtotalMinorUnits": 2400000,
   "lineTaxMinorUnits": 225000,
   "lineTotalMinorUnits": 3225000
 }
@@ -336,6 +457,12 @@ none) are enough to render the line; `productSlug` links to the product page
 (§5.3). `stock` is the variant's current pooled units on hand (never
 negative) — cap the line's quantity picker at it (§5.3 has the same number
 per variant).
+
+`unitPriceMinorUnits` is the sale price while a product is on sale;
+`regularUnitPriceMinorUnits` and `discountLabel` appear only then. A sale
+that ends while the item sits in the cart simply stops applying — checkout
+charges whatever is in effect at that moment. Adding an archived variant
+fails with `400 "This item is no longer available."`.
 
 Call this once per shopper session and persist `id` client-side. Don't call
 it again for the same shopper unless the stored cart id is gone/invalid.
@@ -437,9 +564,33 @@ Body:
   "customerName": "Jane Doe",
   "customerEmail": "jane@example.com",
   "customerPhone": "+2348012345678",
-  "returnUrl": "https://your-storefront.example.com/order-confirmation"
+  "returnUrl": "https://your-storefront.example.com/order-confirmation",
+  "fulfilmentMethod": "delivery",
+  "deliveryAddress": {
+    "recipientName": "Jane Doe",
+    "phone": "08030000000",
+    "addressLine": "12 Independence Avenue",
+    "city": "Enugu",
+    "state": "Enugu",
+    "landmark": "Opposite the stadium"
+  }
 }
 ```
+
+**Fulfilment (required).** `fulfilmentMethod` is `"delivery"` or `"pickup"`;
+`GET /store` (§5.17) says which the merchant offers.
+
+- **Delivery**: send `deliveryAddress` (all fields required except
+  `landmark`; `state` is one of the 36 Nigerian states or `FCT`), or, for a
+  logged-in customer, `savedAddressId` (§5.21). The address is copied onto
+  the order.
+- **Pickup**: send `pickupLocationId` from §5.18. No address is needed.
+- **Delivery fee**: in flat-fee mode the fee is added to the total (and to
+  the amount the gateway collects). In note mode no fee is charged and the
+  merchant's note is copied onto the order — the customer settles delivery
+  with the merchant directly.
+
+Error messages here are written for shoppers — show them as-is.
 
 `cartId` is required; the three customer fields are optional, but you should
 collect at least `customerEmail` in your checkout form — it's both the
@@ -494,9 +645,17 @@ included, plus a `payment` key:
 
 Errors:
 
-- `404` — cart not found.
-- `400` — cart is empty, a variant in it no longer exists, or `returnUrl` is
-  missing while a gateway is active.
+- `404` — cart not found; `"We couldn't find that saved address."`.
+- `400` — cart is empty, a variant in it no longer exists or was archived
+  (`"This item is no longer available."`), or `returnUrl` is missing while a
+  gateway is active.
+- `400` — fulfilment: `"Choose delivery or pickup."`, `"Delivery isn't
+available for this store right now. You can choose: pickup."` (and the
+  pickup equivalent), `"This store isn't taking online orders right now."`,
+  `"Choose a pickup location."`, `"That location no longer offers pickup.
+Please choose another."`, `"Enter the {field}."`, `"Choose a Nigerian state
+from the list."`, `"This coupon only applies to delivery orders with a set
+delivery fee."`.
 
 ### 5.10 Get an order
 
@@ -530,6 +689,19 @@ Response `200`:
   "paymentReference": "pay_...",
   "paymentMethod": null,
   "paymentDetails": null,
+  "fulfilmentMethod": "delivery",
+  "deliveryAddress": {
+    "recipientName": "Jane Doe",
+    "phone": "08030000000",
+    "addressLine": "12 Independence Avenue",
+    "city": "Enugu",
+    "state": "Enugu"
+  },
+  "pickupLocation": null,
+  "deliveryFeeMinorUnits": 200000,
+  "deliveryNote": null,
+  "courier": "GIG Logistics",
+  "trackingReference": "GIG123456",
   "createdAt": "2026-01-01T00:00:00.000Z",
   "updatedAt": "2026-01-01T00:00:00.000Z",
   "items": [
@@ -541,6 +713,7 @@ Response `200`:
       "attributeValues": { "color": "Black" },
       "quantity": 2,
       "unitPriceMinorUnits": 1500000,
+      "regularUnitPriceMinorUnits": null,
       "discountMinorUnits": 0,
       "taxMinorUnits": 225000,
       "lineTotalMinorUnits": 3225000
@@ -548,6 +721,15 @@ Response `200`:
   ]
 }
 ```
+
+- `fulfilmentMethod` is `delivery`, `pickup` or (for in-store sales)
+  `in_store`; it's `null` on orders placed before fulfilment options existed.
+- `pickupLocation` is `{ locationId, name, address, phone }` as it was at
+  checkout. `deliveryNote` is set instead of a fee in note mode.
+- `courier` / `trackingReference` appear once the merchant dispatches the
+  order (either may be `null`).
+- `regularUnitPriceMinorUnits` is set when the line was bought on sale — the
+  difference is what the customer saved.
 
 `tenantId` and `locationId` aren't returned — the tenant is already fixed
 for the whole request, and the fulfilling store location isn't meaningful to
@@ -561,8 +743,9 @@ Use this to render an order confirmation / tracking page.
 `paymentStatus` (`pending | paid | failed | refunded`) is the **financial**
 status — whether the customer has actually paid. It's tracked separately
 from `status`, which is the **fulfillment** lifecycle
-(`received → payment_confirmed → inventory_updated → picking → packing →
-dispatched → delivered → completed → feedback`). Nothing in the API
+(delivery: `received → payment_confirmed → inventory_updated → picking →
+packing → dispatched → delivered → completed → feedback`; pickup: the same up
+to `packing`, then `ready_for_pickup → completed → feedback`). Nothing in the API
 currently advances `status` automatically off of `paymentStatus` — a paid
 order still needs a merchant to move it through fulfillment by hand (or your
 own integration to do so). Poll this endpoint (or redirect the customer back
@@ -675,6 +858,124 @@ Full order detail (same shape as §5.10, including `items`). `404` — not
 `403` — if the order exists but belongs to a different customer, so this
 route can't be used to confirm whether an arbitrary order id is valid.
 
+```
+PATCH /api/storefront/v1/account
+Body: { "name": "Jane Doe", "phone": "08030000000" }
+```
+
+Update name and/or phone (email can't be changed). Returns the profile.
+
+```
+POST /api/storefront/v1/account/password
+Body: { "currentPassword": "...", "newPassword": "at least 8 characters" }
+```
+
+`400 "Your current password is incorrect."` on a wrong current password.
+
+### 5.17 Store info
+
+```
+GET /api/storefront/v1/store
+```
+
+Everything a storefront needs before rendering a header or checkout:
+
+```json
+{
+  "name": "Ada's Store",
+  "logoUrl": "https://.../logo.png",
+  "accentColor": "#B5651D",
+  "currency": "NGN",
+  "pricesIncludeTax": false,
+  "contact": { "phone": "0803…", "address": "3 Allen Avenue, Ikeja" },
+  "delivery": { "enabled": true, "feeMode": "flat", "feeMinorUnits": 200000 },
+  "pickup": { "available": true }
+}
+```
+
+In note mode `delivery` is `{ "enabled": true, "feeMode": "note", "note": "…" }`
+— show the note instead of a price. `feeMinorUnits` of `0` means free delivery.
+
+### 5.18 Pickup locations
+
+```
+GET /api/storefront/v1/pickup-locations
+```
+
+`[{ "id", "name", "address", "phone" }]` for locations the merchant offers
+for pickup. Pass the chosen `id` as `pickupLocationId` at checkout.
+
+### 5.19 Category detail
+
+```
+GET /api/storefront/v1/catalogue/categories/:slug
+```
+
+`{ "name", "slug", "parent": { "name", "slug" } | null, "children": [{ "name", "slug" }], "productCount" }`
+— `productCount` includes subcategories. `404` for an unknown or archived slug.
+
+### 5.20 Related products
+
+```
+GET /api/storefront/v1/catalogue/products/:slug/related?limit=8
+```
+
+Other products from the same category (and beneath it), best sellers first,
+then newest. Same item shape as §5.2. `limit` defaults to 8, max 20.
+
+### 5.21 Saved addresses (customer session)
+
+```
+GET    /api/storefront/v1/account/addresses
+POST   /api/storefront/v1/account/addresses          Body: address fields (§5.9) + optional "isDefault": true
+PATCH  /api/storefront/v1/account/addresses/:id      Body: address fields + optional "isDefault": true
+POST   /api/storefront/v1/account/addresses/:id/default
+DELETE /api/storefront/v1/account/addresses/:id
+```
+
+Up to 10 per customer (`400 "You can save up to 10 addresses. Delete one to
+add another."`), exactly one default (the first is default automatically).
+Another customer's address id is a `404`.
+
+### 5.22 Wishlist and reviews (customer session unless noted)
+
+```
+GET    /api/storefront/v1/account/wishlist
+POST   /api/storefront/v1/account/wishlist            Body: { "productId": "uuid" }
+DELETE /api/storefront/v1/account/wishlist/:productId
+```
+
+Up to 200 products; unpublished products drop out of the list. Adding twice
+is harmless.
+
+```
+POST /api/storefront/v1/account/reviews               Body: { "productId", "rating": 1-5, "body"?: "up to 2,000 characters" }
+GET  /api/storefront/v1/catalogue/products/:slug/reviews?page=1&pageSize=20   (no session needed)
+```
+
+Only a customer with a delivered or completed order for the product can
+review it (`403 "You can review this product once your order has been
+delivered."`), once (`409 "You've already reviewed this product."`). The list
+is newest first; `reviewer` is first name and last initial. Reviews the
+merchant hides disappear from the list and the rating. Posting is limited per
+customer (`429`). Review `body` is plain text written by shoppers: render it
+as text, never as HTML.
+
+### 5.23 Back-in-stock alerts
+
+```
+POST /api/storefront/v1/back-in-stock
+Body: { "variantId": "uuid", "email": "jane@example.com", "productUrl": "https://your-store/p/..." }
+```
+
+For an out-of-stock variant (`400 "This item is in stock."` otherwise). The
+shopper gets one email when it's back (checked every 10 minutes), linking to
+`productUrl` if you send one. `productUrl` must be http(s) **on your store's
+own domain** — its `{slug}` subdomain or a verified custom domain (Settings →
+Domains); anything else is `400`. Repeating a request succeeds silently.
+Limited per IP (`429`) — if you call from your own server, all your shoppers
+share its IP, so show a friendly "try again in a minute" on `429`.
+
 ---
 
 ## 6. Payment gateways (Paystack, Flutterwave, Opay)
@@ -742,7 +1043,12 @@ Minimal client flow to implement a storefront against this API:
    `/account/register` (§5.12–5.13) before checkout if the shopper wants an
    account; skip entirely for guest checkout — nothing else in this flow
    changes either way.
-7. **Checkout form**: collect name/email/phone (all optional, but prompt for
+7. **Delivery or pickup**: from `GET /store` (§5.17, fetch once on load),
+   offer only what the merchant has enabled. For delivery, collect a
+   Nigerian address (or let a logged-in shopper pick a saved one, §5.21) and
+   show the flat fee or the merchant's note. For pickup, list
+   `GET /pickup-locations` (§5.18). Send the choice with checkout (§5.9).
+8. **Checkout form**: collect name/email/phone (all optional, but prompt for
    at least `customerEmail` — it's both the guest contact fallback and what
    triggers the confirmation email), `POST /checkout` with the cart id and a
    `returnUrl` pointing at your own order-confirmation route (include the
@@ -753,7 +1059,7 @@ Minimal client flow to implement a storefront against this API:
    response includes `payment.redirectUrl`, navigate the browser there; if
    it doesn't, go straight to your confirmation route instead — both are
    normal outcomes (§6).
-8. **Order confirmation page**: `GET /orders/:id` (server-side, with your
+9. **Order confirmation page**: `GET /orders/:id` (server-side, with your
    API secret) or, if this page needs to work for a shopper who isn't
    proxied through your backend, use the token from the automatically-sent
    confirmation email's link instead (`GET /orders/:id/view?token=...`,
@@ -762,9 +1068,9 @@ Minimal client flow to implement a storefront against this API:
    poll briefly rather than treating it as failure; see §6). Fulfillment
    `status` doesn't advance automatically off of payment — don't build UI
    that waits for it to jump ahead on its own.
-9. **Account page (optional)**: for a logged-in customer, `GET /account`
-   (profile) and `GET /account/orders` (§5.16) render a "My Orders" page —
-   nothing here is reachable without the session cookie from step 6.
+10. **Account page (optional)**: for a logged-in customer, `GET /account`
+    (profile) and `GET /account/orders` (§5.16) render a "My Orders" page —
+    nothing here is reachable without the session cookie from step 6.
 
 Required headers on every request (server-side only — never in browser JS):
 

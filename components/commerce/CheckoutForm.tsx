@@ -9,13 +9,15 @@ import { ApiError } from "@/lib/api-client";
 import { formatOrderNumber } from "@/lib/format-order-status";
 import { CHECKOUT_MODE, GENERAL_INQUIRY_MESSAGE, buildOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 import { Button } from "@/components/shared/Button";
-import { FIELD_CLASS, FIELD_LABEL_CLASS } from "@/components/shared/field-styles";
+import { CheckoutField } from "@/components/commerce/CheckoutField";
+import { FulfilmentSection } from "@/components/commerce/FulfilmentSection";
+import type { CheckoutFulfilment } from "@/hooks/useCheckoutFulfilment";
 
 const LAST_ORDER_ID_KEY = "panache:lastOrderId";
 
 type CheckoutError = { kind: "api"; message: string } | { kind: "generic" };
 
-export function CheckoutForm() {
+export function CheckoutForm({ fulfilment }: { fulfilment: CheckoutFulfilment }) {
   const router = useRouter();
   const cartId = useCartStore((state) => state.cartId);
   const isLoggedIn = useCartStore((state) => state.isLoggedIn);
@@ -27,9 +29,12 @@ export function CheckoutForm() {
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<CheckoutError | null>(null);
 
+  const { method, address, pickupLocationId } = fulfilment;
+  const canSubmit = method === "delivery" || (method === "pickup" && pickupLocationId !== "");
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!cartId) return;
+    if (!cartId || !method || !canSubmit) return;
     setError(null);
 
     const returnUrl = `${window.location.origin}/order-confirmation`;
@@ -41,6 +46,9 @@ export function CheckoutForm() {
         customerEmail: isLoggedIn ? undefined : email || undefined,
         customerPhone: isLoggedIn ? undefined : phone || undefined,
         returnUrl,
+        fulfilmentMethod: method,
+        // The proxy route re-picks these fields server-side (lib/checkout.ts pickCheckoutRequest).
+        ...(method === "delivery" ? { deliveryAddress: address } : { pickupLocationId }),
       },
       {
         onSuccess: (order) => {
@@ -90,11 +98,13 @@ export function CheckoutForm() {
               Log in for faster checkout.
             </a>
           </p>
-          <Field label="Name" value={name} onChange={setName} type="text" autoComplete="name" required={whatsapp} />
-          <Field label="Email" value={email} onChange={setEmail} type="email" autoComplete="email" />
-          <Field label="Phone" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
+          <CheckoutField id="checkout-name" label="Name" value={name} onChange={setName} autoComplete="name" required={whatsapp} />
+          <CheckoutField id="checkout-email" label="Email" value={email} onChange={setEmail} type="email" autoComplete="email" />
+          <CheckoutField id="checkout-phone" label="Phone" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
         </>
       )}
+
+      <FulfilmentSection fulfilment={fulfilment} />
 
       {error && (
         <p role="alert" className="text-sm text-(--color-error)">
@@ -119,7 +129,13 @@ export function CheckoutForm() {
         </p>
       )}
 
-      <Button type="submit" variant="primary-gold" className="w-full" loading={checkout.isPending}>
+      <Button
+        type="submit"
+        variant="primary-gold"
+        className="w-full"
+        loading={checkout.isPending}
+        disabled={!canSubmit}
+      >
         {whatsapp
           ? checkout.isPending
             ? "Opening WhatsApp…"
@@ -134,41 +150,6 @@ export function CheckoutForm() {
         </p>
       )}
     </form>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type,
-  autoComplete,
-  required,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type: string;
-  autoComplete: string;
-  required?: boolean;
-}) {
-  const id = `checkout-${label.toLowerCase()}`;
-  return (
-    <div>
-      <label htmlFor={id} className={FIELD_LABEL_CLASS}>
-        {label}
-        {!required && <span className="text-bone/40"> (optional)</span>}
-      </label>
-      <input
-        id={id}
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className={`mt-1 ${FIELD_CLASS}`}
-      />
-    </div>
   );
 }
 

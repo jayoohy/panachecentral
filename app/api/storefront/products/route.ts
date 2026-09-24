@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isVisibleProduct } from "@/lib/constants";
 import { listProducts } from "@/lib/duka/storefront";
 import { handleRoute } from "@/lib/duka/route-helpers";
+import { parseProductSort } from "@/lib/product-rails";
 
 export async function GET(request: NextRequest) {
   return handleRoute(async () => {
@@ -11,6 +12,8 @@ export async function GET(request: NextRequest) {
       pageSize: searchParams.get("pageSize") ? Number(searchParams.get("pageSize")) : undefined,
       categoryId: searchParams.get("categoryId") ?? undefined,
       search: searchParams.get("search") ?? undefined,
+      sort: parseProductSort(searchParams.get("sort")),
+      featured: searchParams.get("featured") === "true" || undefined,
     });
     // Hidden-category products (Repairs, Watches) are excluded from every listing —
     // see lib/constants.ts isVisibleProduct. totalPages isn't recalculated (same

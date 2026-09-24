@@ -3,15 +3,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api-client";
 import { useCartStore } from "@/lib/store/cart-store";
-import type { CheckoutResponse } from "@/lib/duka/types";
+import type { CheckoutRequest, CheckoutResponse } from "@/lib/duka/types";
 
-export type CheckoutInput = {
-  cartId: string;
-  customerName?: string;
-  customerEmail?: string;
-  customerPhone?: string;
-  returnUrl?: string;
-};
+export type CheckoutInput = CheckoutRequest;
 
 export function useCheckout() {
   const setCartId = useCartStore((state) => state.setCartId);

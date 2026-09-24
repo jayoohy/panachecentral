@@ -29,7 +29,11 @@ export function useCart() {
   const { mutate: createCartMutate, status: createStatus } = createCart;
 
   useEffect(() => {
-    if (!cartId && createStatus === "idle") {
+    // Read the live store, not the render value: during hydration React renders
+    // with the store's initial (server) snapshot, cartId: null, even though the
+    // persisted id is already loaded — trusting it created a fresh, empty cart on
+    // every full page load (docs/pm/tickets/cart-lost-on-reload.md).
+    if (!useCartStore.getState().cartId && createStatus === "idle") {
       createCartMutate();
     }
   }, [cartId, createStatus, createCartMutate]);

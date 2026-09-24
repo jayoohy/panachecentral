@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useCart } from "@/hooks/useCart";
+import { useCheckoutFulfilment } from "@/hooks/useCheckoutFulfilment";
 import { CheckoutForm } from "@/components/commerce/CheckoutForm";
 import { OrderSummaryPanel } from "@/components/commerce/OrderSummaryPanel";
 import { PageHeading } from "@/components/shared/PageHeading";
@@ -10,6 +11,7 @@ import { PageHeading } from "@/components/shared/PageHeading";
 export default function CheckoutPage() {
   const { cart, isLoading } = useCart();
   const router = useRouter();
+  const fulfilment = useCheckoutFulfilment();
 
   useEffect(() => {
     if (!isLoading && cart && cart.items.length === 0) {
@@ -25,9 +27,9 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-4xl px-6 py-16 sm:px-10">
       <PageHeading>Checkout</PageHeading>
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start">
-        <CheckoutForm />
+        <CheckoutForm fulfilment={fulfilment} />
         <div className="lg:sticky lg:top-24">
-          <OrderSummaryPanel source={cart} />
+          <OrderSummaryPanel source={cart} deliveryCharge={fulfilment.charge} />
         </div>
       </div>
     </div>

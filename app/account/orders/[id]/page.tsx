@@ -9,6 +9,7 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { formatOrderReference } from "@/lib/format-order-status";
 import { PaymentStatusBadge, FulfillmentStatusBadge } from "@/components/commerce/StatusBadges";
 import { OrderSummaryPanel } from "@/components/commerce/OrderSummaryPanel";
+import { FulfilmentDetails } from "@/components/commerce/FulfilmentDetails";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { buttonClassName } from "@/components/shared/Button";
 
@@ -50,7 +51,8 @@ export default function AccountOrderDetailPage({ params }: PageProps<"/account/o
         <PaymentStatusBadge status={order.paymentStatus} />
         <FulfillmentStatusBadge status={order.status} />
       </div>
-      <div className="mt-8">
+      <div className="mt-8 space-y-4">
+        <FulfilmentDetails order={order} />
         <OrderSummaryPanel source={order} />
       </div>
     </div>

@@ -18,6 +18,8 @@ export type ProductSummary = {
   status: "active";
   category: { id: string; name: string; slug: string } | null;
   thumbnail: string | null;
+  /** Every image in display order; images[0] is the thumbnail (§5.2). Drives the card hover swap. */
+  images: string[];
   minPriceMinorUnits: number | null;
   maxPriceMinorUnits: number | null;
   /** Total units across all variants — for a sold-out badge only, not a quantity cap. */
@@ -125,6 +127,14 @@ export type Order = {
   paymentReference: string | null;
   paymentMethod: string | null;
   paymentDetails: unknown;
+  /** `null` on orders placed before fulfilment options existed (§5.10). */
+  fulfilmentMethod: FulfilmentMethod | "in_store" | null;
+  deliveryAddress: DeliveryAddress | null;
+  pickupLocation: { locationId: string; name: string; address: string; phone: string | null } | null;
+  deliveryFeeMinorUnits: number | null;
+  deliveryNote: string | null;
+  courier: string | null;
+  trackingReference: string | null;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -135,6 +145,54 @@ export type CheckoutResponse = Order & {
 };
 
 export type OrderSummary = Omit<Order, "items">;
+
+export type FulfilmentMethod = "delivery" | "pickup";
+
+export type DeliveryAddress = {
+  recipientName: string;
+  phone: string;
+  addressLine: string;
+  city: string;
+  state: string;
+  landmark?: string;
+};
+
+/** GET /store (§5.17). */
+export type StoreInfo = {
+  name: string;
+  logoUrl: string | null;
+  accentColor: string | null;
+  currency: string;
+  pricesIncludeTax: boolean;
+  contact: { phone: string | null; address: string | null };
+  delivery:
+    | { enabled: false }
+    | { enabled: true; feeMode: "flat"; feeMinorUnits: number }
+    | { enabled: true; feeMode: "note"; note: string };
+  pickup: { available: boolean };
+};
+
+/** GET /pickup-locations (§5.18). */
+export type PickupLocation = {
+  id: string;
+  name: string;
+  address: string;
+  phone: string | null;
+};
+
+/** POST /checkout body (§5.9). */
+export type CheckoutRequest = {
+  cartId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  returnUrl?: string;
+  fulfilmentMethod: FulfilmentMethod;
+  deliveryAddress?: DeliveryAddress;
+  pickupLocationId?: string;
+};
+
+export type ProductSort = "name" | "newest" | "best_selling" | "price_asc" | "price_desc";
 
 export type Customer = {
   id: string;

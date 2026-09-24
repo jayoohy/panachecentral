@@ -5,6 +5,7 @@ import type { ProductSummary } from "@/lib/duka/types";
 import { useQuickAddToCart } from "@/hooks/useQuickAddToCart";
 import { useQuickViewStore } from "@/lib/store/quick-view-store";
 import { formatPriceRange } from "@/lib/format-money";
+import { ProductCardImage } from "@/components/commerce/ProductCardImage";
 
 /**
  * Stitch shop tile: a dark vitrine frame with the category label over the
@@ -16,6 +17,9 @@ import { formatPriceRange } from "@/lib/format-money";
  * card — because the Quick Look and Add to Cart buttons need to stay
  * independently clickable, and a <button> nested inside an <a> is both
  * invalid HTML and breaks keyboard/screen-reader navigation.
+ *
+ * The photograph swaps to the product's second image on hover — see
+ * ProductCardImage.tsx.
  *
  * ponytail: plain <img>, not next/image — the tenant's media host is
  * unknown/configurable, so next.config.ts can't allowlist it yet. Switch to
@@ -34,19 +38,7 @@ export function ProductCard({ product }: { product: ProductSummary }) {
           {product.category?.name ?? " "}
         </p>
         <div className="relative mt-3 aspect-square overflow-hidden bg-onyx sm:mt-4">
-          {product.thumbnail ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={product.thumbnail}
-              alt={product.name}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-[0.6875rem] uppercase tracking-[0.18em] text-bone/30">
-              No image
-            </div>
-          )}
+          <ProductCardImage name={product.name} thumbnail={product.thumbnail} images={product.images} />
 
           <button
             type="button"

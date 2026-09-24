@@ -3,10 +3,12 @@ import { checkout } from "@/lib/duka/storefront";
 import { getSessionCookie } from "@/lib/duka/session";
 import { grantOrderAccess } from "@/lib/duka/order-access";
 import { handleRoute } from "@/lib/duka/route-helpers";
+import { pickCheckoutRequest } from "@/lib/checkout";
 
 export async function POST(request: Request) {
   return handleRoute(async () => {
-    const body = await request.json();
+    // Forward only the documented checkout fields (lib/checkout.ts), never the raw body.
+    const body = pickCheckoutRequest(await request.json().catch(() => null));
     const sessionCookie = await getSessionCookie();
     const { data } = await checkout(body, sessionCookie);
     // Grants this browser read access to exactly this order on the

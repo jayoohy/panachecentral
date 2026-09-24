@@ -18,14 +18,17 @@ export function Section({
   tone,
   children,
   className = "",
+  labelledBy,
 }: {
   id?: string;
+  /** id of the element that names this band, for sections whose heading isn't a direct child. */
+  labelledBy?: string;
   tone: Tone;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <section id={id} className={`${TONE_CLASSES[tone]} px-6 py-24 sm:px-10 sm:py-32 lg:px-16 ${className}`}>
+    <section id={id} aria-labelledby={labelledBy} className={`${TONE_CLASSES[tone]} px-6 py-24 sm:px-10 sm:py-32 lg:px-16 ${className}`}>
       <div className="mx-auto max-w-6xl">{children}</div>
     </section>
   );

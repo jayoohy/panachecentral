@@ -4,13 +4,17 @@ import { dukaFetch } from "./client";
 import type {
   Cart,
   Category,
+  CheckoutRequest,
   CheckoutResponse,
   Customer,
   Order,
   OrderSummary,
   Paginated,
+  PickupLocation,
   ProductDetail,
+  ProductSort,
   ProductSummary,
+  StoreInfo,
 } from "./types";
 
 // One function per docs/storefront-api.md endpoint (§5). Route handlers under
@@ -26,12 +30,16 @@ export function listProducts(params: {
   pageSize?: number;
   categoryId?: string;
   search?: string;
+  sort?: ProductSort;
+  featured?: boolean;
 }) {
   const query = new URLSearchParams();
   if (params.page) query.set("page", String(params.page));
   if (params.pageSize) query.set("pageSize", String(params.pageSize));
   if (params.categoryId) query.set("categoryId", params.categoryId);
   if (params.search) query.set("search", params.search);
+  if (params.sort) query.set("sort", params.sort);
+  if (params.featured) query.set("featured", "true");
   const qs = query.toString();
   return dukaFetch<Paginated<ProductSummary>>(`/catalogue/products${qs ? `?${qs}` : ""}`);
 }
@@ -72,13 +80,7 @@ export function removeCoupon(cartId: string) {
 }
 
 export function checkout(
-  body: {
-    cartId: string;
-    customerName?: string;
-    customerEmail?: string;
-    customerPhone?: string;
-    returnUrl?: string;
-  },
+  body: CheckoutRequest,
   sessionCookie?: string
 ) {
   return dukaFetch<CheckoutResponse>("/checkout", {
@@ -86,6 +88,14 @@ export function checkout(
     body: JSON.stringify(body),
     sessionCookie,
   });
+}
+
+export function getStore() {
+  return dukaFetch<StoreInfo>("/store");
+}
+
+export function listPickupLocations() {
+  return dukaFetch<PickupLocation[]>("/pickup-locations");
 }
 
 export function getOrder(orderId: string) {
