@@ -32,15 +32,22 @@ export function CheckoutForm({ fulfilment }: { fulfilment: CheckoutFulfilment })
   const { method, address, pickupLocationId } = fulfilment;
   const canSubmit = method === "delivery" || (method === "pickup" && pickupLocationId !== "");
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!cartId || !method || !canSubmit) return;
     setError(null);
 
     const returnUrl = `${window.location.origin}/order-confirmation`;
+    // Popup blockers only allow window.open during the click itself, not after
+    // the checkout request resolves — so reserve the tab now, point it later.
+    const whatsappTab = CHECKOUT_MODE === "whatsapp" ? window.open("", "_blank") : null;
 
-    checkout.mutate(
-      {
+    let order;
+    try {
+      // mutateAsync, not mutate(..., { onSuccess }): useCheckout clears the
+      // cart on success, which unmounts this form before per-call callbacks
+      // run — React Query drops those, but the awaited promise still resolves.
+      order = await checkout.mutateAsync({
         cartId,
         customerName: isLoggedIn ? undefined : name || undefined,
         customerEmail: isLoggedIn ? undefined : email || undefined,
@@ -49,37 +56,38 @@ export function CheckoutForm({ fulfilment }: { fulfilment: CheckoutFulfilment })
         fulfilmentMethod: method,
         // The proxy route re-picks these fields server-side (lib/checkout.ts pickCheckoutRequest).
         ...(method === "delivery" ? { deliveryAddress: address } : { pickupLocationId }),
-      },
-      {
-        onSuccess: (order) => {
-          if (CHECKOUT_MODE === "whatsapp") {
-            // Popup blockers commonly stop window.open — the confirmation page
-            // repeats this same link as a visible fallback if it was blocked.
-            const message = buildOrderMessage(formatOrderNumber(order.id), account?.name ?? name);
-            window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
-            router.push(`/order-confirmation?orderId=${order.id}`);
-            return;
-          }
+      });
+    } catch (err) {
+      whatsappTab?.close();
+      setError(err instanceof ApiError ? { kind: "api", message: err.message } : { kind: "generic" });
+      return;
+    }
 
-          if (order.payment?.redirectUrl) {
-            // The gateway's own redirect strips any query params we'd want
-            // to add to returnUrl after the fact (we don't know the order id
-            // until this very response, which arrives after returnUrl was
-            // already submitted) — sessionStorage survives the round trip
-            // to the gateway and back, so /order-confirmation can recover it.
-            sessionStorage.setItem(LAST_ORDER_ID_KEY, order.id);
-            window.location.href = order.payment.redirectUrl;
-          } else {
-            // No gateway leg — we control this navigation directly, so the
-            // order id can go straight in the query string (design spec F7).
-            router.push(`/order-confirmation?orderId=${order.id}`);
-          }
-        },
-        onError: (err) => {
-          setError(err instanceof ApiError ? { kind: "api", message: err.message } : { kind: "generic" });
-        },
+    if (CHECKOUT_MODE === "whatsapp") {
+      // If the tab was blocked anyway, the confirmation page repeats this
+      // same link as a visible fallback.
+      const message = buildOrderMessage(formatOrderNumber(order.id), account?.name ?? name);
+      if (whatsappTab) {
+        whatsappTab.opener = null;
+        whatsappTab.location.href = buildWhatsAppLink(message);
       }
-    );
+      router.push(`/order-confirmation?orderId=${order.id}`);
+      return;
+    }
+
+    if (order.payment?.redirectUrl) {
+      // The gateway's own redirect strips any query params we'd want
+      // to add to returnUrl after the fact (we don't know the order id
+      // until this very response, which arrives after returnUrl was
+      // already submitted) — sessionStorage survives the round trip
+      // to the gateway and back, so /order-confirmation can recover it.
+      sessionStorage.setItem(LAST_ORDER_ID_KEY, order.id);
+      window.location.href = order.payment.redirectUrl;
+    } else {
+      // No gateway leg — we control this navigation directly, so the
+      // order id can go straight in the query string (design spec F7).
+      router.push(`/order-confirmation?orderId=${order.id}`);
+    }
   }
 
   const whatsapp = CHECKOUT_MODE === "whatsapp";
