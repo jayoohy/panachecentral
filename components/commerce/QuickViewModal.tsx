@@ -111,7 +111,7 @@ function QuickViewProduct({ product, onClose }: { product: ProductDetail; onClos
             away via "View full details". */}
         <div
           className="mt-3 line-clamp-3 text-sm leading-[1.6] text-bone/80 sm:mt-4 sm:text-[0.9375rem] sm:leading-[1.75]"
-          dangerouslySetInnerHTML={{ __html: product.description }}
+          dangerouslySetInnerHTML={{ __html: product.description ?? "" }}
         />
 
         <div className="mt-4 sm:mt-6">

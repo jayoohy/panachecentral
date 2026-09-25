@@ -30,8 +30,13 @@ export async function GET() {
       (product) =>
         `- [${product.name}](${absoluteUrl(`/products/${product.slug}`)})${
           product.category ? ` (${product.category.name})` : ""
-        }: ${truncate(product.description, 140)}`
+        }${product.description ? `: ${truncate(product.description, 140)}` : ""}`
     ),
+    "",
+    "## About",
+    "",
+    `- [About ${SITE_NAME}](${absoluteUrl("/about")})`,
+    `- [Contact](${absoluteUrl("/contact")}): WhatsApp, email, and social`,
     "",
   ];
 

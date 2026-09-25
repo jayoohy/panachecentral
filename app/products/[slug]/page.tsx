@@ -4,34 +4,42 @@ import { ProductDetailView } from "@/components/commerce/ProductDetailView";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { isVisibleProduct } from "@/lib/constants";
 import { fetchProduct } from "@/lib/duka/catalogue";
-import { breadcrumbSchema, productSchema } from "@/lib/seo/schema";
-import { SITE_NAME, truncate } from "@/lib/site";
+import { breadcrumbSchema, productDescription, productSchema } from "@/lib/seo/schema";
+import { SITE_NAME } from "@/lib/site";
 
-export async function generateMetadata({ params }: PageProps<"/products/[slug]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/products/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const product = await fetchProduct(slug);
   if (!product) return {};
 
-  const description = truncate(product.description);
+  const description = productDescription(product);
   const path = `/products/${product.slug}`;
+  // metaTitle is the merchant's SEO title, or the name when unset (§5.3).
+  const title = product.metaTitle || product.name;
 
   return {
-    title: product.name,
+    title,
     description,
     alternates: { canonical: path },
     openGraph: {
       type: "website",
       siteName: SITE_NAME,
       locale: "en_NG",
-      title: product.name,
+      title,
       description,
       url: path,
-      images: product.images.slice(0, 1).map((url) => ({ url, alt: product.name })),
+      images: product.images
+        .slice(0, 1)
+        .map((url) => ({ url, alt: product.name })),
     },
   };
 }
 
-export default async function ProductPage({ params }: PageProps<"/products/[slug]">) {
+export default async function ProductPage({
+  params,
+}: PageProps<"/products/[slug]">) {
   const { slug } = await params;
   const product = await fetchProduct(slug);
 
@@ -53,7 +61,12 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
               { name: "Home", path: "/" },
               { name: "Shop", path: "/shop" },
               ...(product.category
-                ? [{ name: product.category.name, path: `/shop/${product.category.slug}` }]
+                ? [
+                    {
+                      name: product.category.name,
+                      path: `/shop/${product.category.slug}`,
+                    },
+                  ]
                 : []),
               { name: product.name, path: `/products/${product.slug}` },
             ]),

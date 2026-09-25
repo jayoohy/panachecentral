@@ -14,7 +14,8 @@ export type ProductSummary = {
   id: string;
   name: string;
   slug: string;
-  description: string;
+  /** Catalog-authored HTML — null when the product has none (every product, as of 2026-09-25). */
+  description: string | null;
   status: "active";
   category: { id: string; name: string; slug: string } | null;
   thumbnail: string | null;
@@ -41,11 +42,25 @@ export type ProductDetail = {
   id: string;
   name: string;
   slug: string;
-  description: string;
+  /** Catalog-authored HTML — null when the product has none (every product, as of 2026-09-25). */
+  description: string | null;
   status: "active";
   category: { id: string; name: string; slug: string } | null;
   images: string[];
   variants: ProductVariant[];
+  // SEO/detail fields (§5.3). Optional so older fixtures and cached responses still type-check.
+  /** Falls back to the name when the merchant hasn't set one. */
+  metaTitle?: string;
+  /** Falls back to a 160-char excerpt of the raw description HTML (entities and all) when unset. */
+  metaDescription?: string;
+  specifications?: { key: string; value: string }[];
+  tags?: string[];
+  brand?: string | null;
+  averageRating?: number | null;
+  reviewCount?: number;
+  discount?: { type: string; value: number; label: string; endsAt: string | null };
+  /** Labels for the variant option keys, e.g. material_purity → "Material/Purity". */
+  attributes?: { key: string; label: string }[];
 };
 
 export type Paginated<T> = {

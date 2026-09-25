@@ -2,6 +2,8 @@ import { Section } from "@/components/shared/Section";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionKicker } from "@/components/shared/SectionKicker";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { faqSchema } from "@/lib/seo/schema";
 
 const FAQS = [
   {
@@ -19,6 +21,7 @@ const FAQS = [
 export function FaqSection() {
   return (
     <Section tone="surface">
+      <JsonLd data={faqSchema(FAQS)} />
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
         <Reveal className="lg:col-span-5">
           <SectionKicker>04 / Questions</SectionKicker>

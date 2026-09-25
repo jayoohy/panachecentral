@@ -108,7 +108,7 @@ export function ProductDetailView({
               user-submitted — rendering it lets the store's own paragraph breaks show correctly. */}
           <div
             className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80 [&_p+p]:mt-4"
-            dangerouslySetInnerHTML={{ __html: product.description }}
+            dangerouslySetInnerHTML={{ __html: product.description ?? "" }}
             id="product-body"
           />
 
