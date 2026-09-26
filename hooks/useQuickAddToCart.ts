@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api-client";
 import { useCart, useUpdateCartItem } from "@/hooks/useCart";
+import { quantityInCart, remainingStock } from "@/lib/cart-stock";
 import { useQuickViewStore } from "@/lib/store/quick-view-store";
 import type { ProductDetail } from "@/lib/duka/types";
 
 /**
  * "Add to Cart" straight from a product card, with no variant picker on the card itself.
  * A product with exactly one in-stock variant adds directly; one that needs a real choice
- * (color, size, ...), has none in stock, or fails to load opens Quick Look instead of
+ * (color, size, ...), has none left to add (sold out, or all of it already in the cart), or fails to load opens Quick Look instead of
  * guessing which variant the shopper meant.
  */
 export function useQuickAddToCart() {
@@ -30,13 +31,12 @@ export function useQuickAddToCart() {
       });
 
       const [onlyVariant] = product.variants;
-      if (product.variants.length !== 1 || onlyVariant.stock === 0) {
+      if (product.variants.length !== 1 || remainingStock(onlyVariant, cart) === 0) {
         openQuickView(slug);
         return;
       }
 
-      const existingQuantity = cart?.items.find((item) => item.productVariantId === onlyVariant.id)?.quantity ?? 0;
-      await updateItem.mutateAsync({ productVariantId: onlyVariant.id, quantity: existingQuantity + 1 });
+      await updateItem.mutateAsync({ productVariantId: onlyVariant.id, quantity: quantityInCart(cart, onlyVariant.id) + 1 });
       setAddedSlug(slug);
       setTimeout(() => setAddedSlug((current) => (current === slug ? null : current)), 1600);
     } catch {

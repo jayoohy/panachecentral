@@ -12,6 +12,7 @@
 
   --font-serif: var(--font-display), Georgia, serif;
   --font-sans: var(--font-body), "Helvetica Neue", Arial, sans-serif;
+  --font-great-vibes: var(--font-great-vibes), var(--font-serif);
 }
 
 body {
@@ -267,7 +268,7 @@ html[data-preload="active"] .hero-in {
   }
   #page-body p,
   #product-body p {
-    @apply text-base font-normal wrap-break-word;
+    @apply text-base font-normal;
   }
   #page-body h1,
   #product-body h1 {

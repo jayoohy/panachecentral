@@ -37,6 +37,19 @@ export function plainText(html: string | null | undefined) {
     .trim();
 }
 
+/**
+ * Catalog editors paste descriptions with &nbsp; between every word, which stops the text
+ * wrapping. Keep the markup (paragraph breaks) but turn those into normal spaces and drop
+ * paragraphs left empty.
+ */
+export function cleanHtml(html: string | null | undefined) {
+  return (html ?? "")
+    .replace(/&nbsp;|&#160;| /g, " ")
+    .replace(/ {2,}/g, " ")
+    .replace(/<p>\s*<\/p>/g, "")
+    .trim();
+}
+
 /** Trim to a meta-description length without cutting mid-word. */
 export function truncate(text: string | null | undefined, max = 160) {
   const clean = plainText(text);

@@ -1,5 +1,6 @@
 "use client";
 
+import { variantChoiceKeys } from "@/lib/variants";
 import type { ProductVariant } from "@/lib/duka/types";
 
 /**
@@ -15,17 +16,14 @@ export function VariantSelector({
   variants,
   selectedAttributes,
   onSelectAttribute,
+  labelFor = (key) => key,
 }: {
   variants: ProductVariant[];
   selectedAttributes: Record<string, string>;
   onSelectAttribute: (key: string, value: string) => void;
+  labelFor?: (key: string) => string;
 }) {
-  // Only an attribute with more than one distinct value across variants is a real choice —
-  // e.g. a single-variant product's "length" or internal SKU-style attribute always has
-  // exactly one value, so showing it as a pickable row is just noise, not a decision.
-  const attributeKeys = Array.from(
-    new Set(variants.flatMap((variant) => Object.keys(variant.attributeValues)))
-  ).filter((key) => new Set(variants.map((variant) => variant.attributeValues[key]).filter(Boolean)).size > 1);
+  const attributeKeys = variantChoiceKeys(variants);
 
   if (attributeKeys.length === 0) return null;
 
@@ -38,7 +36,10 @@ export function VariantSelector({
 
         return (
           <div key={key}>
-            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-bone/60">{key}</p>
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-bone/60">
+              {labelFor(key)}
+              {selectedAttributes[key] && <span className="text-bone">: {selectedAttributes[key]}</span>}
+            </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {values.map((value) => {
                 const isSelected = selectedAttributes[key] === value;
@@ -68,7 +69,7 @@ export function VariantSelector({
                     } ${!availableForCurrentSelection ? "cursor-not-allowed text-bone/30 line-through" : isSelected ? "" : "text-bone"}`}
                   >
                     {value}
-                    {!availableForCurrentSelection && <span className="sr-only"> — Out of stock</span>}
+                    {!availableForCurrentSelection && <span className="sr-only">, out of stock</span>}
                   </button>
                 );
               })}

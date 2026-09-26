@@ -24,7 +24,12 @@ export function HeroVideo({ children }: { children?: ReactNode }) {
         playsInline
         preload="auto"
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
+        className="absolute inset-0 h-full w-full object-cover object-[70%_20%] sm:object-[center_20%]"
+      />
+      {/* Mobile dark overlay */}
+      <div
+        className="absolute inset-0 bg-black/50 sm:bg-black/30"
+        aria-hidden="true"
       />
       {children}
     </div>

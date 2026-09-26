@@ -3,19 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useProduct } from "@/hooks/useProduct";
-import { useCart, useUpdateCartItem } from "@/hooks/useCart";
 import { useQuickViewStore } from "@/lib/store/quick-view-store";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
-import { formatMoney } from "@/lib/format-money";
+import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel } from "@/lib/variants";
+import { cleanHtml } from "@/lib/site";
 import { VariantSelector } from "@/components/commerce/VariantSelector";
 import { AddToCartButton } from "@/components/commerce/AddToCartButton";
-import type { ProductDetail, ProductVariant } from "@/lib/duka/types";
-
-function resolveVariant(variants: ProductVariant[], selectedAttributes: Record<string, string>) {
-  return variants.find((variant) =>
-    Object.entries(selectedAttributes).every(([key, value]) => variant.attributeValues[key] === value)
-  );
-}
+import { ProductGallery } from "@/components/commerce/ProductGallery";
+import type { ProductDetail } from "@/lib/duka/types";
 
 /**
  * Product detail in a panel, so a shopper can see the full listing and add to cart
@@ -65,7 +60,7 @@ export function QuickViewModal() {
 
         {isLoading || !product ? (
           <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
-            <div className="mx-auto h-40 w-40 animate-pulse bg-surface sm:mx-0 sm:h-auto sm:w-full" />
+            <div className="mx-auto h-48 w-48 animate-pulse bg-surface sm:mx-0 sm:aspect-square sm:h-auto sm:w-full" />
             <div className="space-y-3">
               <div className="h-5 w-2/3 animate-pulse bg-surface" />
               <div className="h-4 w-1/3 animate-pulse bg-surface" />
@@ -82,28 +77,25 @@ export function QuickViewModal() {
 }
 
 function QuickViewProduct({ product, onClose }: { product: ProductDetail; onClose: () => void }) {
-  const { cart } = useCart();
-  const updateItem = useUpdateCartItem();
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
 
-  const displayVariant = resolveVariant(product.variants, selectedAttributes) ?? product.variants[0];
+  const selectedVariant = resolveSelectedVariant(product.variants, selectedAttributes);
+  const labelFor = (key: string) => attributeLabel(product.attributes, key);
+  const priceLabel = variantPriceLabel(product.variants, selectedVariant);
 
   return (
     <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:gap-8 sm:p-6">
-      <div className="mx-auto h-40 w-40 shrink-0 overflow-hidden border border-bone/10 bg-surface sm:mx-0 sm:h-auto sm:w-full sm:aspect-square">
-        {product.images[0] && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
-        )}
+      <div className="mx-auto w-48 sm:mx-0 sm:w-full">
+        <ProductGallery images={product.images} productName={product.name} compact />
       </div>
       <div>
         {product.category && (
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{product.category.name}</p>
         )}
         <p className="mt-2 font-serif text-xl text-bone sm:text-2xl">{product.name}</p>
-        {displayVariant && (
+        {priceLabel && (
           <p className="mt-2 text-base font-light tracking-[0.08em] text-bone sm:mt-3 sm:text-lg">
-            {formatMoney(displayVariant.priceMinorUnits)}
+            {priceLabel}
           </p>
         )}
         {/* Quick Look is meant to stay compact — clamp the description rather than
@@ -111,30 +103,22 @@ function QuickViewProduct({ product, onClose }: { product: ProductDetail; onClos
             away via "View full details". */}
         <div
           className="mt-3 line-clamp-3 text-sm leading-[1.6] text-bone/80 sm:mt-4 sm:text-[0.9375rem] sm:leading-[1.75]"
-          dangerouslySetInnerHTML={{ __html: product.description ?? "" }}
+          dangerouslySetInnerHTML={{ __html: cleanHtml(product.description) }}
         />
 
         <div className="mt-4 sm:mt-6">
           <VariantSelector
             variants={product.variants}
             selectedAttributes={selectedAttributes}
+            labelFor={labelFor}
             onSelectAttribute={(key, value) => setSelectedAttributes((prev) => ({ ...prev, [key]: value }))}
           />
         </div>
 
         <div className="mt-4 flex flex-col gap-3 sm:mt-6">
           <AddToCartButton
-            outOfStock={!displayVariant || displayVariant.stock === 0}
-            loading={updateItem.isPending}
-            onAdd={() => {
-              if (!displayVariant) return;
-              const existingQuantity =
-                cart?.items.find((item) => item.productVariantId === displayVariant.id)?.quantity ?? 0;
-              return updateItem.mutateAsync({
-                productVariantId: displayVariant.id,
-                quantity: existingQuantity + 1,
-              });
-            }}
+            variant={selectedVariant}
+            missing={missingChoices(product.variants, selectedAttributes).map(labelFor)}
           />
           <Link
             href={`/products/${product.slug}`}

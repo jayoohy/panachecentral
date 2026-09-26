@@ -16,7 +16,7 @@ export function PositioningSection() {
           </SectionHeading>
           <p className="mt-10 max-w-[65ch] font-serif text-xl leading-relaxed sm:text-2xl">
             Panache Central is a luxury jewelry house for people who choose pieces to wear, not
-            just to own. Every piece is chosen — not stocked — to stand beside gold and diamonds.
+            just to own. Every piece is chosen, not stocked, to stand beside gold and diamonds.
           </p>
         </Reveal>
       </div>

@@ -17,14 +17,14 @@ const SECTIONS: ContentSection[] = [
   {
     heading: "Information We Collect",
     paragraphs: [
-      "When you create an account, place an order, or contact us, we collect the details you provide directly — typically your name, email address, phone number, and the order details themselves (items, sizes, delivery information).",
+      "When you create an account, place an order, or contact us, we collect the details you provide directly, typically your name, email address, phone number, and the order details themselves (items, sizes, delivery information).",
       "We don't collect payment card details on our own systems; where a payment gateway is used, your card details are handled entirely by that gateway.",
     ],
   },
   {
     heading: "How We Use Your Information",
     paragraphs: [
-      `We use your information to create and fulfil your order, respond to questions, and keep your account working — creating your cart, remembering what's in it, and showing your order history.`,
+      `We use your information to create and fulfil your order, respond to questions, and keep your account working: creating your cart, remembering what's in it, and showing your order history.`,
       "We don't sell your personal information to third parties.",
     ],
   },
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
       title="Privacy"
       accent="Policy"
       intro="How we collect, use, and protect the information you share with us."
-      notice="Draft — pending legal review. This page describes our current practices in plain language but hasn't yet been reviewed by counsel, and shouldn't be treated as final. If you have questions about how your information is handled in the meantime, contact us directly below."
+      notice="Draft: pending legal review. This page describes our current practices in plain language but hasn't yet been reviewed by counsel, and shouldn't be treated as final. If you have questions about how your information is handled in the meantime, contact us directly below."
       sections={SECTIONS}
       cta={{ label: "Contact Us", href: "/contact" }}
     />
