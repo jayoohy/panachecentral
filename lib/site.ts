@@ -7,7 +7,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3
 export const SITE_NAME = "Panache Central";
 
 export const SITE_DESCRIPTION =
-  "Panache Central is a luxury jewelry house for stainless steel, moissanite, and gold-plated pieces, chosen one at a time.";
+  "Panache Central. Style, undisputed. Non-tarnish, fade-resistant, hypoallergenic pieces, sourced one at a time.";
 
 export const SITE_TAGLINE = TAGLINE;
 

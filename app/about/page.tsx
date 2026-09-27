@@ -3,7 +3,7 @@ import { ContentPage, type ContentSection } from "@/components/shared/ContentPag
 import { SITE_NAME } from "@/lib/site";
 
 const TITLE = "About";
-const DESCRIPTION = `${SITE_NAME} is a luxury jewelry house for people who choose pieces to wear, not just to own. Stainless steel, moissanite, and gold-plated pieces, chosen one at a time.`;
+const DESCRIPTION = `${SITE_NAME}. Style, undisputed. Non-tarnish, fade-resistant, hypoallergenic pieces sourced one at a time.`;
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -12,32 +12,30 @@ export const metadata: Metadata = {
   openGraph: { type: "website", siteName: SITE_NAME, locale: "en_NG", title: TITLE, description: DESCRIPTION, url: "/about" },
 };
 
-// Every line is from the locked brand copy (docs/panache-central-homepage-content.md §2–§4) —
-// no founding story, dates or numbers until real ones are supplied.
+// No founding story, dates or numbers until real ones are supplied.
 const SECTIONS: ContentSection[] = [
   {
-    heading: "The House",
+    heading: "Style, That Doesn't Ask Twice",
     paragraphs: [
-      "Panache Central is a luxury jewelry house for people who choose pieces to wear, not just to own.",
-      "Every piece is chosen, not stocked.",
+      "Panache Central sources pieces built to last: non-tarnish, fade-resistant, hypoallergenic. No drama, just consistency.",
     ],
   },
   {
-    heading: "Chosen, Not Stocked",
+    heading: "No Filler Pieces",
     paragraphs: [
-      "Each design earns its place in the collection on its own. Nothing goes out under the Panache Central name to fill a gap in a catalog.",
+      "Every design earns its place in the collection. Nothing goes out under the Panache Central name just to fill a gap.",
     ],
   },
   {
-    heading: "One Material Standard",
+    heading: "Made to Last",
     paragraphs: [
-      "Stainless steel, moissanite, and gold-plated pieces. Each product page lists the exact material.",
+      "Non-tarnish, fade-resistant, gentle on skin.",
     ],
   },
   {
-    heading: "Chosen for Daily Wear",
+    heading: "Worth It, Every Day",
     paragraphs: [
-      "Pieces are selected for everyday wear, not for one event and a drawer.",
+      "Precious doesn't mean fragile. Wear it on the ordinary days too.",
     ],
   },
 ];
@@ -48,7 +46,7 @@ export default function AboutPage() {
       kicker="The House"
       title="About"
       accent="Panache Central"
-      intro="A luxury jewelry house for people who choose pieces to wear, not just to own."
+      intro="Style, Undisputed."
       sections={SECTIONS}
       cta={{ label: "Shop the Collection", href: "/shop" }}
     />

@@ -35,7 +35,7 @@ const greatVibes = Great_Vibes({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Panache Central | Luxury Jewelry, Chosen to Last",
+    default: "Panache Central | Style, Undisputed",
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE_NAME,
     locale: "en_NG",
-    title: "Panache Central | Luxury Jewelry, Chosen to Last",
+    title: "Panache Central | Style, Undisputed",
     description: SITE_DESCRIPTION,
   },
   twitter: { card: "summary_large_image" },

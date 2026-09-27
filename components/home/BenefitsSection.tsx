@@ -6,18 +6,18 @@ import { SectionKicker } from "@/components/shared/SectionKicker";
 const PILLARS = [
   {
     numeral: "I",
-    title: "Chosen, Not Stocked",
-    body: "Each design earns its place in the collection on its own. Nothing goes out under the Panache Central name to fill a gap in a catalog.",
+    title: "No Filler Pieces",
+    body: "Every design earns its place in the collection. Nothing goes out under the Panache Central name just to fill a gap.",
   },
   {
     numeral: "II",
-    title: "One Material Standard",
-    body: "Stainless steel, moissanite, and gold-plated pieces are held to the same bar.",
+    title: "Made to Last",
+    body: "Non-tarnish, fade-resistant, gentle on skin.",
   },
   {
     numeral: "III",
-    title: "Chosen for Daily Wear",
-    body: "Pieces are selected for everyday wear, not for one event and a drawer.",
+    title: "Worth It, Every Day",
+    body: "Precious doesn't mean fragile. Wear it on the ordinary days too.",
   },
 ] as const;
 
@@ -28,7 +28,7 @@ export function BenefitsSection() {
         <SectionKicker>02 / The House Pillars</SectionKicker>
         <div className="mt-6 max-w-3xl">
           <SectionHeading tone="onyx" accent="One Occasion">
-            Chosen for More Than
+            More Than
           </SectionHeading>
         </div>
       </Reveal>

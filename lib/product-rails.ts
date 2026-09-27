@@ -20,7 +20,7 @@ export const RAILS: Record<RailId, RailConfig> = {
   featured: {
     id: "featured",
     kicker: "The Edit",
-    heading: "Chosen",
+    heading: "Featured",
     accent: "This Season",
     query: { featured: true },
   },

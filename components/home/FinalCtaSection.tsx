@@ -16,7 +16,7 @@ export function FinalCtaSection() {
         </Reveal>
         <Reveal delay={150} className="lg:col-span-4 lg:col-start-9">
           <p className="text-lg font-light leading-[1.75]">
-            Pieces chosen one by one, for everyday wear.
+            Panache Isn&apos;t Loud. It&apos;s Certain.
           </p>
           <Link href="/shop" className={buttonClassName("primary-onyx", "mt-8")}>
             Shop the Collection

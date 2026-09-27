@@ -11,12 +11,12 @@ export function PositioningSection() {
           01 / The House
         </SectionKicker>
         <Reveal delay={100} className="lg:col-span-8 lg:col-start-5">
-          <SectionHeading tone="bone" accent="Not a Page">
-            A House,
+          <SectionHeading tone="bone" accent="That Doesn't Ask Twice">
+            Style,
           </SectionHeading>
           <p className="mt-10 max-w-[65ch] font-serif text-xl leading-relaxed sm:text-2xl">
-            Panache Central is a luxury jewelry house for people who choose pieces to wear, not
-            just to own. Every piece is chosen, not stocked, to stand beside gold and diamonds.
+            Panache Central sources pieces built to last: non-tarnish, fade-resistant,
+            hypoallergenic. No drama, just consistency.
           </p>
         </Reveal>
       </div>
