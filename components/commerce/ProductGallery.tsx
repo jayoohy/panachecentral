@@ -12,8 +12,17 @@ const SWIPE_COMMIT_THRESHOLD = 15; // % of track width a drag must cross to chan
  * otherwise it snaps back. Left/right arrow keys give keyboard users the same
  * navigation the drag gives touch/mouse users, and thumbnails are real buttons
  * so all three input styles land on the same `index` state.
+ * `compact` (Quick Look) swaps the thumbnail strip for position dots to save height.
  */
-export function ProductGallery({ images, productName }: { images: string[]; productName: string }) {
+export function ProductGallery({
+  images,
+  productName,
+  compact = false,
+}: {
+  images: string[];
+  productName: string;
+  compact?: boolean;
+}) {
   const [index, setIndex] = useState(0);
   const [dragPercent, setDragPercent] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -48,7 +57,7 @@ export function ProductGallery({ images, productName }: { images: string[]; prod
   }
 
   return (
-    <div className="space-y-4">
+    <div className={compact ? "space-y-3" : "space-y-4"}>
       <div
         className="relative aspect-square touch-pan-y select-none overflow-hidden border border-bone/10 bg-surface"
         role="group"
@@ -77,7 +86,7 @@ export function ProductGallery({ images, productName }: { images: string[]; prod
             <img
               key={src}
               src={src}
-              alt={i === 0 ? productName : `${productName} — view ${i + 1}`}
+              alt={i === 0 ? productName : `${productName}, view ${i + 1}`}
               draggable={false}
               className="h-full w-full shrink-0 object-cover"
             />
@@ -85,7 +94,18 @@ export function ProductGallery({ images, productName }: { images: string[]; prod
         </div>
       </div>
 
-      {images.length > 1 && (
+      {compact && images.length > 1 && (
+        <div className="flex justify-center gap-2" aria-hidden="true">
+          {images.map((src, i) => (
+            <span
+              key={src}
+              className={`h-1.5 w-1.5 rounded-full transition-colors duration-300 ${i === index ? "bg-gold" : "bg-bone/25"}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {!compact && images.length > 1 && (
         <div className="grid grid-cols-4 gap-4">
           {images.map((src, i) => (
             <button

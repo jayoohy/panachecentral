@@ -12,7 +12,9 @@ import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 // Repairs, Watches) resolves as not-found here — that's what makes its route 404 everywhere.
 async function resolveCategory(slug: string) {
   const live = await fetchCategories();
-  const category = (live ?? CATEGORIES).find((c) => c.slug === slug && isVisibleCategory(c));
+  const category = (live ?? CATEGORIES).find(
+    (c) => c.slug === slug && isVisibleCategory(c),
+  );
   return { live, category };
 }
 
@@ -55,6 +57,7 @@ export async function generateMetadata({
 
 export default async function ShopCategoryPage({
   params,
+  searchParams,
 }: PageProps<"/shop/[categorySlug]">) {
   const { categorySlug } = await params;
   const { live, category } = await resolveCategory(categorySlug);
@@ -62,8 +65,10 @@ export default async function ShopCategoryPage({
   // An unknown slug used to render the full catalogue under a made-up URL — 404 it instead.
   if (!category) notFound();
 
+  const queryParams = await searchParams;
+  const page = queryParams.page as string | undefined;
   const products = live?.some((c) => c.id === category.id)
-    ? await fetchProductsPage(category.id)
+    ? await fetchProductsPage(category.id, page ? parseInt(page, 10) : 1)
     : undefined;
   const path = `/shop/${category.slug}`;
 
@@ -92,6 +97,7 @@ export default async function ShopCategoryPage({
         categorySlug={categorySlug}
         initialCategories={live}
         initialProducts={products}
+        currentPage={page ? parseInt(page, 10) : 1}
       />
     </>
   );

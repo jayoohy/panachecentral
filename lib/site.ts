@@ -7,7 +7,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3
 export const SITE_NAME = "Panache Central";
 
 export const SITE_DESCRIPTION =
-  "Panache Central is a luxury jewelry house for stainless steel, moissanite, and gold-plated pieces, chosen one at a time.";
+  "Panache Central. Style, undisputed. Non-tarnish, fade-resistant, hypoallergenic pieces, sourced one at a time.";
 
 export const SITE_TAGLINE = TAGLINE;
 
@@ -34,6 +34,19 @@ export function plainText(html: string | null | undefined) {
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Catalog editors paste descriptions with &nbsp; between every word, which stops the text
+ * wrapping. Keep the markup (paragraph breaks) but turn those into normal spaces and drop
+ * paragraphs left empty.
+ */
+export function cleanHtml(html: string | null | undefined) {
+  return (html ?? "")
+    .replace(/&nbsp;|&#160;| /g, " ")
+    .replace(/ {2,}/g, " ")
+    .replace(/<p>\s*<\/p>/g, "")
     .trim();
 }
 

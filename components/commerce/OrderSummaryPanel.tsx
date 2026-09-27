@@ -50,10 +50,6 @@ export function OrderSummaryPanel({
             <span className="tabular-nums">−{formatMoney(source.discountMinorUnits, currency)}</span>
           </div>
         )}
-        <div className="flex justify-between text-bone/70">
-          <span>Tax</span>
-          <span className="tabular-nums">{formatMoney(source.taxMinorUnits, currency)}</span>
-        </div>
         {charge?.kind === "fee" && (
           <div className="flex justify-between text-bone/70">
             <span>Delivery</span>

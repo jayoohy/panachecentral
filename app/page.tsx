@@ -19,7 +19,7 @@ export default function Home() {
       <BenefitsSection />
       <CollectionSection />
       <ProductRailSection rail={RAILS["new-arrivals"]} />
-      <ProductRailSection rail={RAILS["best-sellers"]} />
+      {/* <ProductRailSection rail={RAILS["best-sellers"]} /> */}
       <FaqSection />
       <FinalCtaSection />
     </>

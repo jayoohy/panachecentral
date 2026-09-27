@@ -77,7 +77,7 @@ function OrderConfirmationContent() {
         </div>
       )}
       <div className="text-center">
-        <PageHeading>{whatsapp ? "Almost done — confirm on WhatsApp." : "Thank you. Your order is confirmed."}</PageHeading>
+        <PageHeading>{whatsapp ? "Almost done. Confirm on WhatsApp." : "Thank you. Your order is confirmed."}</PageHeading>
         <p className="mt-2 text-sm text-bone/60">{formatOrderReference(order.id)}</p>
         {whatsapp ? (
           <div className="mt-6">
@@ -104,13 +104,13 @@ function OrderConfirmationContent() {
             </div>
             {order.paymentStatus === "pending" && (
               <p className="mt-3 text-sm text-bone/60">
-                Confirming your payment — this can take a few seconds.
+                Confirming your payment. This can take a few seconds.
               </p>
             )}
             {order.paymentStatus === "failed" && (
               <div className="mt-3">
                 <p className="text-sm text-(--color-error)">
-                  Payment didn&apos;t go through. No charge was made — you&apos;re welcome to try again.
+                  Payment didn&apos;t go through. No charge was made. You&apos;re welcome to try again.
                 </p>
                 <Link href="/shop" className={buttonClassName("outline", "mt-4")}>
                   Browse the Collection

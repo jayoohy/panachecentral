@@ -12,11 +12,25 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/shop" },
-  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_NG", title: TITLE, description: DESCRIPTION, url: "/shop" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_NG",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/shop",
+  },
 };
 
-export default async function ShopPage() {
-  const [categories, products] = await Promise.all([fetchCategories(), fetchProductsPage()]);
+export default async function ShopPage({ searchParams }: PageProps<"/shop">) {
+  const queryParams = await searchParams;
+  const category = queryParams.category as string | undefined;
+  const page = queryParams.page as string | undefined;
+
+  const [categories, products] = await Promise.all([
+    fetchCategories(),
+    fetchProductsPage(category, page ? parseInt(page, 10) : 1),
+  ]);
 
   return (
     <>
@@ -27,11 +41,22 @@ export default async function ShopPage() {
             { name: "Shop", path: "/shop" },
           ]),
           ...(products?.items.length
-            ? [collectionSchema({ name: "The Collection", path: "/shop", description: DESCRIPTION, products: products.items })]
+            ? [
+                collectionSchema({
+                  name: "The Collection",
+                  path: "/shop",
+                  description: DESCRIPTION,
+                  products: products.items,
+                }),
+              ]
             : []),
         ]}
       />
-      <ShopView initialCategories={categories} initialProducts={products} />
+      <ShopView
+        initialCategories={categories}
+        initialProducts={products}
+        currentPage={page ? parseInt(page, 10) : 1}
+      />
     </>
   );
 }

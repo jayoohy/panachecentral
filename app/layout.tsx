@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import { Playfair_Display, DM_Sans, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -26,9 +26,18 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
+const greatVibes = Great_Vibes({
+  variable: "--font-great-vibes",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Panache Central | Luxury Jewelry, Chosen to Last", template: `%s | ${SITE_NAME}` },
+  title: {
+    default: "Panache Central | Style, Undisputed",
+    template: `%s | ${SITE_NAME}`,
+  },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   manifest: "/logo/site.webmanifest",
@@ -44,7 +53,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE_NAME,
     locale: "en_NG",
-    title: "Panache Central | Luxury Jewelry, Chosen to Last",
+    title: "Panache Central | Style, Undisputed",
     description: SITE_DESCRIPTION,
   },
   twitter: { card: "summary_large_image" },
@@ -55,7 +64,11 @@ export const viewport: Viewport = { themeColor: "#0A0A0A" };
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: the head script sets data-preload on <html> before React hydrates.
-    <html lang="en" className={`${playfairDisplay.variable} ${dmSans.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${playfairDisplay.variable} ${dmSans.variable} ${greatVibes.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: PRELOAD_INIT_SCRIPT }} />
       </head>

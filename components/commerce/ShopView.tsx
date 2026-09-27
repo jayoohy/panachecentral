@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { Reveal } from "@/components/shared/Reveal";
 import { SectionKicker } from "@/components/shared/SectionKicker";
@@ -14,6 +14,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useProducts } from "@/hooks/useProducts";
 import { isVisibleCategory } from "@/lib/constants";
 import type { Category, Paginated, ProductSummary } from "@/lib/duka/types";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 /**
  * Shared implementation for /shop and /shop/[categorySlug] — the design
@@ -23,26 +24,54 @@ export function ShopView({
   categorySlug,
   initialCategories,
   initialProducts,
+  currentPage,
 }: {
   categorySlug?: string;
   initialCategories?: Category[];
   initialProducts?: Paginated<ProductSummary>;
+  currentPage?: number;
 }) {
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(currentPage || 1);
   const [search, setSearch] = useState("");
   const { data: categories } = useCategories(initialCategories);
-  const activeCategory = categories?.find((category) => category.slug === categorySlug);
+  const activeCategory = categories?.find(
+    (category) => category.slug === categorySlug,
+  );
   const topRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const handleSetParam = (key: string, value: string) => {
+    // 1. Create a mutable copy of current search params
+    const params = new URLSearchParams(searchParams.toString());
+
+    // 2. Set or update the target parameter
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key); // Clean up empty values
+    }
+
+    // 3. Update the URL without reloading
+    // Use router.replace to prevent adding unnecessary pages to browser history
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   // Page-change previously left the visitor scrolled at the pagination control, looking
   // at the outgoing results until they scrolled back up manually (audit F7).
   function handlePageChange(nextPage: number) {
+    handleSetParam("page", nextPage.toString());
     setPage(nextPage);
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   const breadcrumbItems = activeCategory
-    ? [{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: activeCategory.name }]
+    ? [
+        { label: "Home", href: "/" },
+        { label: "Shop", href: "/shop" },
+        { label: activeCategory.name },
+      ]
     : [{ label: "Home", href: "/" }, { label: "Shop" }];
 
   // The server-rendered first page only applies to the unfiltered, unsearched view.
@@ -52,19 +81,34 @@ export function ShopView({
       categoryId: activeCategory?.id,
       search: search || undefined,
     },
-    page === 1 && !search ? initialProducts : undefined
+    page === 1 && !search ? initialProducts : undefined,
   );
 
+  // useEffect(() => {
+  //   const page = searchParams.get("page");
+  //   setPage(page ? parseInt(page, 10) : 1);
+  // }, []);
+
   return (
-    <div ref={topRef} className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16">
+    <div
+      ref={topRef}
+      className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-16"
+    >
       <Breadcrumbs items={breadcrumbItems} />
-      <SectionKicker>{activeCategory ? "The Collection" : "Shop the House"}</SectionKicker>
+      <SectionKicker>
+        {activeCategory ? "The Collection" : "Shop the House"}
+      </SectionKicker>
       <div className="mt-6">
-        <PageHeading>{activeCategory ? activeCategory.name : "The Collection"}</PageHeading>
+        <PageHeading>
+          {activeCategory ? activeCategory.name : "The Collection"}
+        </PageHeading>
       </div>
 
       <div className="mt-10 flex flex-col gap-6 border-t border-bone/10 pt-8 sm:flex-row sm:items-end sm:justify-between">
-        <CategoryChips categories={(categories ?? []).filter(isVisibleCategory)} activeSlug={categorySlug} />
+        <CategoryChips
+          categories={(categories ?? []).filter(isVisibleCategory)}
+          activeSlug={categorySlug}
+        />
         <div className="sm:w-72">
           <SearchField
             value={search}
@@ -84,19 +128,30 @@ export function ShopView({
         </div>
       ) : !data || data.items.length === 0 ? (
         <div className="mt-10">
-          <EmptyState heading="No pieces match your search." body="Try a different term or explore by category." />
+          <EmptyState
+            heading="No pieces match your search."
+            body="Try a different term or explore by category."
+          />
         </div>
       ) : (
         <>
           <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
             {data.items.map((product, index) => (
               // Stagger every other column (Stitch asymmetric grid) — offsets follow the column count.
-              <Reveal key={product.id} delay={(index % 3) * 100} className="even:mt-12 lg:even:mt-0 lg:nth-[3n+2]:mt-12">
+              <Reveal
+                key={product.id}
+                delay={(index % 3) * 100}
+                className="even:mt-12 lg:even:mt-0 lg:nth-[3n+2]:mt-12"
+              >
                 <ProductCard product={product} />
               </Reveal>
             ))}
           </div>
-          <Pagination page={data.page} totalPages={data.totalPages} onPageChange={handlePageChange} />
+          <Pagination
+            page={data.page}
+            totalPages={data.totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
     </div>

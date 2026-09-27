@@ -7,9 +7,9 @@ import { faqSchema } from "@/lib/seo/schema";
 
 const FAQS = [
   {
-    question: "What are pieces made from?",
+    question: "What's it made from?",
     answer:
-      "Stainless steel, moissanite, and gold-plated pieces, depending on the design. Each product page lists the exact material.",
+      "Non-tarnish, fade-resistant metal that's gentle on skin. Each product page lists the exact finish.",
   },
   {
     question: "How do I order?",

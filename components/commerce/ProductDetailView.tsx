@@ -1,29 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { notFound } from "next/navigation";
 import { useProduct } from "@/hooks/useProduct";
-import { useCartStore } from "@/lib/store/cart-store";
-import { useCart, useUpdateCartItem } from "@/hooks/useCart";
-import { formatMoney } from "@/lib/format-money";
+import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel, variantRegularPriceLabel } from "@/lib/variants";
+import { PriceTag } from "@/components/commerce/PriceTag";
+import { cleanHtml } from "@/lib/site";
 import { VariantSelector } from "@/components/commerce/VariantSelector";
 import { AddToCartButton } from "@/components/commerce/AddToCartButton";
 import { ProductGallery } from "@/components/commerce/ProductGallery";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { SectionKicker } from "@/components/shared/SectionKicker";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
-import type { ProductDetail, ProductVariant } from "@/lib/duka/types";
-
-function resolveVariant(
-  variants: ProductVariant[],
-  selectedAttributes: Record<string, string>,
-): ProductVariant | undefined {
-  return variants.find((variant) =>
-    Object.entries(selectedAttributes).every(
-      ([key, value]) => variant.attributeValues[key] === value,
-    ),
-  );
-}
+import type { ProductDetail } from "@/lib/duka/types";
 
 // initialProduct comes from the server page so the full product HTML is in the first response
 // (crawlers that skip JavaScript, including most LLM bots, would otherwise only see the skeleton).
@@ -39,20 +28,9 @@ export function ProductDetailView({
     isLoading,
     isError,
   } = useProduct(slug, initialProduct);
-  const cartId = useCartStore((state) => state.cartId);
-  const { cart } = useCart();
-  const updateItem = useUpdateCartItem();
   const [selectedAttributes, setSelectedAttributes] = useState<
     Record<string, string>
   >({});
-
-  const selectedVariant = useMemo(
-    () =>
-      product
-        ? resolveVariant(product.variants, selectedAttributes)
-        : undefined,
-    [product, selectedAttributes],
-  );
 
   if (isError) notFound();
 
@@ -68,7 +46,11 @@ export function ProductDetailView({
     );
   }
 
-  const displayVariant = selectedVariant ?? product.variants[0];
+  const selectedVariant = resolveSelectedVariant(product.variants, selectedAttributes);
+  const labelFor = (key: string) => attributeLabel(product.attributes, key);
+  const priceLabel = variantPriceLabel(product.variants, selectedVariant);
+  const regularPriceLabel = variantRegularPriceLabel(product.variants, selectedVariant);
+  const discountLabel = (selectedVariant ?? product).discount?.label;
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
@@ -99,16 +81,16 @@ export function ProductDetailView({
           <div className="mt-4">
             <PageHeading>{product.name}</PageHeading>
           </div>
-          {displayVariant && (
+          {priceLabel && (
             <p className="mt-6 text-lg font-light tracking-[0.08em] text-bone">
-              {formatMoney(displayVariant.priceMinorUnits)}
+              <PriceTag price={priceLabel} regularPrice={regularPriceLabel} discountLabel={discountLabel} />
             </p>
           )}
           {/* product.description is HTML authored in the catalog (see docs/storefront-api.md), not
               user-submitted — rendering it lets the store's own paragraph breaks show correctly. */}
           <div
-            className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80 [&_p+p]:mt-4"
-            dangerouslySetInnerHTML={{ __html: product.description ?? "" }}
+            className="mt-6 text-[0.9375rem] leading-[1.75] text-bone/80 [&_p+p]:mt-4 w-full"
+            dangerouslySetInnerHTML={{ __html: cleanHtml(product.description) }}
             id="product-body"
           />
 
@@ -116,6 +98,7 @@ export function ProductDetailView({
             <VariantSelector
               variants={product.variants}
               selectedAttributes={selectedAttributes}
+              labelFor={labelFor}
               onSelectAttribute={(key, value) =>
                 setSelectedAttributes((prev) => ({ ...prev, [key]: value }))
               }
@@ -124,23 +107,10 @@ export function ProductDetailView({
 
           <div className="mt-8">
             <AddToCartButton
-              outOfStock={!displayVariant || displayVariant.stock === 0}
-              loading={updateItem.isPending}
-              onAdd={() => {
-                if (!cartId || !displayVariant) return;
-                // PATCH sets an absolute quantity, not a delta (docs/storefront-api.md
-                // §5.6) — increment from whatever's already in the cart for this variant.
-                const existingQuantity =
-                  cart?.items.find(
-                    (item) => item.productVariantId === displayVariant.id,
-                  )?.quantity ?? 0;
-                return updateItem.mutateAsync({
-                  productVariantId: displayVariant.id,
-                  quantity: existingQuantity + 1,
-                });
-              }}
+              variant={selectedVariant}
+              missing={missingChoices(product.variants, selectedAttributes).map(labelFor)}
             />
-            {displayVariant && displayVariant.stock === 0 && (
+            {selectedVariant && selectedVariant.stock === 0 && (
               <p className="mt-3 text-xs text-bone/60">
                 This option is currently unavailable.
               </p>

@@ -11,11 +11,10 @@ import { GENERAL_INQUIRY_MESSAGE, buildWhatsAppLink } from "@/lib/whatsapp";
 
 const OPTIONS: Record<
   FulfilmentMethod,
-  { label: string; description: string }
+  { label: string; description?: string }
 > = {
   delivery: {
     label: "Delivery",
-    description: "We'll bring it to your address.",
   },
   pickup: {
     label: "Pickup",
@@ -99,9 +98,11 @@ export function FulfilmentSection({
                   <span className="block font-medium text-bone">
                     {OPTIONS[option].label}
                   </span>
-                  <span className="block text-bone/60">
-                    {OPTIONS[option].description}
-                  </span>
+                  {OPTIONS[option].description && (
+                    <span className="block text-bone/60">
+                      {OPTIONS[option].description}
+                    </span>
+                  )}
                 </RadioCard>
               ))}
             </div>

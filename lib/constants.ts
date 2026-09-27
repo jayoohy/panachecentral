@@ -2,12 +2,12 @@ import { CATEGORIES } from "@/lib/categories";
 
 // Locked sitewide tagline — docs/pm/panache-central-website-prd.md §3, §9.
 // Single source so Hero, Final CTA, and Footer can't drift from each other.
-export const TAGLINE = "Luxury Jewelry. Chosen to Last.";
+export const TAGLINE = "Style, Undisputed.";
 
-// Display split so headlines can set the second sentence in italic without a second copy of the words.
-const [tagLead, tagAccent] = TAGLINE.split(/(?<=\.) /);
-export const TAGLINE_LEAD = tagLead; // "Luxury Jewelry."
-export const TAGLINE_ACCENT = tagAccent; // "Chosen to Last."
+// Display split so headlines can set the second word in italic without a second copy of the words.
+const [tagLead, tagAccent] = TAGLINE.split(/(?<=,) /);
+export const TAGLINE_LEAD = tagLead; // "Style,"
+export const TAGLINE_ACCENT = tagAccent; // "Undisputed."
 
 // Categories hidden from storefront navigation/menus (still real categories in the backend
 // catalog — this only stops them surfacing as shoppable, it doesn't delete anything).

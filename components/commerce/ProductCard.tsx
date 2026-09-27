@@ -6,6 +6,7 @@ import { useQuickAddToCart } from "@/hooks/useQuickAddToCart";
 import { useQuickViewStore } from "@/lib/store/quick-view-store";
 import { formatPriceRange } from "@/lib/format-money";
 import { ProductCardImage } from "@/components/commerce/ProductCardImage";
+import { PriceTag } from "@/components/commerce/PriceTag";
 
 /**
  * Stitch shop tile: a dark vitrine frame with the category label over the
@@ -58,7 +59,18 @@ export function ProductCard({ product }: { product: ProductSummary }) {
           </Link>
         </p>
         <p className="mt-1 text-xs tabular-nums text-bone/70 sm:text-sm">
-          {product.stock === 0 ? "Sold out" : formatPriceRange(product)}
+          {product.stock === 0 ? (
+            "Sold out"
+          ) : (
+            <PriceTag
+              price={formatPriceRange(product)}
+              regularPrice={formatPriceRange({
+                minPriceMinorUnits: product.regularMinPriceMinorUnits ?? null,
+                maxPriceMinorUnits: product.regularMaxPriceMinorUnits ?? null,
+              })}
+              discountLabel={product.discount?.label}
+            />
+          )}
         </p>
       </div>
 

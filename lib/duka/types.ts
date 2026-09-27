@@ -23,6 +23,10 @@ export type ProductSummary = {
   images: string[];
   minPriceMinorUnits: number | null;
   maxPriceMinorUnits: number | null;
+  /** Present only while the product is on sale; min/max above are then the sale prices (§5.2). */
+  regularMinPriceMinorUnits?: number;
+  regularMaxPriceMinorUnits?: number;
+  discount?: Discount;
   /** Total units across all variants — for a sold-out badge only, not a quantity cap. */
   stock: number;
   createdAt: string;
@@ -34,9 +38,14 @@ export type ProductVariant = {
   sku: string;
   barcode: string | null;
   priceMinorUnits: number;
+  /** Present only while on sale; priceMinorUnits is then the sale price (§5.3). */
+  regularPriceMinorUnits?: number;
+  discount?: Discount;
   attributeValues: Record<string, string>;
   stock: number;
 };
+
+export type Discount = { type: string; value: number; label: string; endsAt: string | null };
 
 export type ProductDetail = {
   id: string;
@@ -58,7 +67,7 @@ export type ProductDetail = {
   brand?: string | null;
   averageRating?: number | null;
   reviewCount?: number;
-  discount?: { type: string; value: number; label: string; endsAt: string | null };
+  discount?: Discount;
   /** Labels for the variant option keys, e.g. material_purity → "Material/Purity". */
   attributes?: { key: string; label: string }[];
 };
@@ -95,6 +104,9 @@ export type CartItem = {
   /** The variant's current units on hand — the cap for this line's quantity. */
   stock: number;
   unitPriceMinorUnits: number;
+  /** Present only while on sale, with discountLabel (§5.4). */
+  regularUnitPriceMinorUnits?: number;
+  discountLabel?: string;
   lineTotalMinorUnits: number;
 };
 
