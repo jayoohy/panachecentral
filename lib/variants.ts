@@ -39,3 +39,11 @@ export function variantPriceLabel(variants: ProductVariant[], selected: ProductV
   const prices = variants.map((variant) => variant.priceMinorUnits);
   return formatPriceRange({ minPriceMinorUnits: Math.min(...prices), maxPriceMinorUnits: Math.max(...prices) });
 }
+
+/** The pre-sale counterpart of variantPriceLabel, "" when nothing in scope is on sale. */
+export function variantRegularPriceLabel(variants: ProductVariant[], selected: ProductVariant | undefined) {
+  if (selected) return selected.regularPriceMinorUnits ? formatMoney(selected.regularPriceMinorUnits) : "";
+  if (!variants.some((variant) => variant.regularPriceMinorUnits)) return "";
+  const prices = variants.map((variant) => variant.regularPriceMinorUnits ?? variant.priceMinorUnits);
+  return formatPriceRange({ minPriceMinorUnits: Math.min(...prices), maxPriceMinorUnits: Math.max(...prices) });
+}

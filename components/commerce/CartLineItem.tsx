@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/format-money";
 import { QuantityStepper } from "@/components/commerce/QuantityStepper";
+import { PriceTag } from "@/components/commerce/PriceTag";
 import type { CartItem } from "@/lib/duka/types";
 
 // Cart responses don't carry a currency field (only Order does — see
@@ -41,8 +42,17 @@ export function CartLineItem({
         </div>
         <div className="flex items-center justify-between">
           <QuantityStepper quantity={item.quantity} onChange={onQuantityChange} max={item.stock} />
-          <p className="text-sm font-medium tabular-nums text-bone">
-            {formatMoney(item.lineTotalMinorUnits)}
+          <p className="text-right text-sm font-medium text-bone">
+            <PriceTag
+              className="justify-end"
+              price={formatMoney(item.lineTotalMinorUnits)}
+              regularPrice={
+                item.regularUnitPriceMinorUnits
+                  ? formatMoney(item.regularUnitPriceMinorUnits * item.quantity)
+                  : undefined
+              }
+              discountLabel={item.discountLabel}
+            />
           </p>
         </div>
       </div>

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { notFound } from "next/navigation";
 import { useProduct } from "@/hooks/useProduct";
-import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel } from "@/lib/variants";
+import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel, variantRegularPriceLabel } from "@/lib/variants";
+import { PriceTag } from "@/components/commerce/PriceTag";
 import { cleanHtml } from "@/lib/site";
 import { VariantSelector } from "@/components/commerce/VariantSelector";
 import { AddToCartButton } from "@/components/commerce/AddToCartButton";
@@ -48,6 +49,8 @@ export function ProductDetailView({
   const selectedVariant = resolveSelectedVariant(product.variants, selectedAttributes);
   const labelFor = (key: string) => attributeLabel(product.attributes, key);
   const priceLabel = variantPriceLabel(product.variants, selectedVariant);
+  const regularPriceLabel = variantRegularPriceLabel(product.variants, selectedVariant);
+  const discountLabel = (selectedVariant ?? product).discount?.label;
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
@@ -80,7 +83,7 @@ export function ProductDetailView({
           </div>
           {priceLabel && (
             <p className="mt-6 text-lg font-light tracking-[0.08em] text-bone">
-              {priceLabel}
+              <PriceTag price={priceLabel} regularPrice={regularPriceLabel} discountLabel={discountLabel} />
             </p>
           )}
           {/* product.description is HTML authored in the catalog (see docs/storefront-api.md), not

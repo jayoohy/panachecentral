@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useProduct } from "@/hooks/useProduct";
 import { useQuickViewStore } from "@/lib/store/quick-view-store";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
-import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel } from "@/lib/variants";
+import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel, variantRegularPriceLabel } from "@/lib/variants";
+import { PriceTag } from "@/components/commerce/PriceTag";
 import { cleanHtml } from "@/lib/site";
 import { VariantSelector } from "@/components/commerce/VariantSelector";
 import { AddToCartButton } from "@/components/commerce/AddToCartButton";
@@ -82,6 +83,8 @@ function QuickViewProduct({ product, onClose }: { product: ProductDetail; onClos
   const selectedVariant = resolveSelectedVariant(product.variants, selectedAttributes);
   const labelFor = (key: string) => attributeLabel(product.attributes, key);
   const priceLabel = variantPriceLabel(product.variants, selectedVariant);
+  const regularPriceLabel = variantRegularPriceLabel(product.variants, selectedVariant);
+  const discountLabel = (selectedVariant ?? product).discount?.label;
 
   return (
     <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:gap-8 sm:p-6">
@@ -95,7 +98,7 @@ function QuickViewProduct({ product, onClose }: { product: ProductDetail; onClos
         <p className="mt-2 font-serif text-xl text-bone sm:text-2xl">{product.name}</p>
         {priceLabel && (
           <p className="mt-2 text-base font-light tracking-[0.08em] text-bone sm:mt-3 sm:text-lg">
-            {priceLabel}
+            <PriceTag price={priceLabel} regularPrice={regularPriceLabel} discountLabel={discountLabel} />
           </p>
         )}
         {/* Quick Look is meant to stay compact — clamp the description rather than
