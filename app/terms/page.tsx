@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
 import { ContentPage, type ContentSection } from "@/components/shared/ContentPage";
 import { SITE_NAME } from "@/lib/site";
-import { CONTACT_EMAIL } from "@/lib/social";
 
 const TITLE = "Terms of Sale";
 
-// Draft, standard e-commerce boilerplate structure — not legal advice, and not final.
-// noindex stays on until this is reviewed and the notice below is removed
-// (docs/design/panache-storefront-ux-audit-2026-09-22.md F2).
+// Standard e-commerce boilerplate structure — not legal advice.
 export const metadata: Metadata = {
   title: TITLE,
-  robots: { index: false },
 };
 
 const SECTIONS: ContentSection[] = [
@@ -65,7 +61,6 @@ export default function TermsPage() {
       title="Terms"
       accent="of Sale"
       intro="The terms that apply when you order from us."
-      notice={`Draft: pending legal review. This page describes our current practices in plain language but hasn't yet been reviewed by counsel, and shouldn't be treated as final. Questions in the meantime: ${CONTACT_EMAIL}.`}
       sections={SECTIONS}
       cta={{ label: "Contact Us", href: "/contact" }}
     />

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/shared/Button";
 
 /** Prev/next plus numbered page buttons so a visitor can jump straight to any page. */
@@ -10,7 +13,39 @@ export function Pagination({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) {
+  // Which "…" (by position in the rendered list) is currently showing its jump-to-page input.
+  const [openEllipsisAt, setOpenEllipsisAt] = useState<number | null>(null);
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (openEllipsisAt !== null) inputRef.current?.focus();
+  }, [openEllipsisAt]);
+
   if (totalPages <= 1) return null;
+
+  function closeEllipsis() {
+    setOpenEllipsisAt(null);
+    setDraft("");
+  }
+
+  function submitDraft() {
+    const target = Math.trunc(Number(draft));
+    if (Number.isFinite(target) && draft.trim() !== "") {
+      onPageChange(Math.min(Math.max(target, 1), totalPages));
+    }
+    closeEllipsis();
+  }
+
+  function onInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submitDraft();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      closeEllipsis();
+    }
+  }
 
   return (
     <nav className="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination">
@@ -25,9 +60,35 @@ export function Pagination({
 
       {getPageItems(page, totalPages).map((item, index) =>
         item === "ellipsis" ? (
-          <span key={`ellipsis-${index}`} className="px-1 text-sm text-bone/40" aria-hidden="true">
-            …
-          </span>
+          openEllipsisAt === index ? (
+            <input
+              key={`ellipsis-input-${index}`}
+              ref={inputRef}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value.replace(/[^0-9]/g, ""))}
+              onKeyDown={onInputKeyDown}
+              onBlur={submitDraft}
+              placeholder="Page"
+              aria-label={`Jump to a page between 1 and ${totalPages}`}
+              className="h-11 w-16 border border-gold bg-transparent px-2 text-center text-sm tabular-nums text-bone focus:outline-none"
+            />
+          ) : (
+            <button
+              key={`ellipsis-${index}`}
+              type="button"
+              onClick={() => {
+                setOpenEllipsisAt(index);
+                setDraft("");
+              }}
+              aria-label="Choose a page number"
+              className="flex h-11 min-w-11 items-center justify-center text-sm text-bone/40 transition-colors hover:text-gold"
+            >
+              …
+            </button>
+          )
         ) : (
           <button
             key={item}

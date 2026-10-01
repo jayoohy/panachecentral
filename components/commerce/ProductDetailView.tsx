@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useProduct } from "@/hooks/useProduct";
 import { attributeLabel, missingChoices, resolveSelectedVariant, variantPriceLabel, variantRegularPriceLabel } from "@/lib/variants";
@@ -12,6 +13,8 @@ import { ProductGallery } from "@/components/commerce/ProductGallery";
 import { PageHeading } from "@/components/shared/PageHeading";
 import { SectionKicker } from "@/components/shared/SectionKicker";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
+import { FIELD_LABEL_CLASS } from "@/components/shared/field-styles";
+import { getCareGuide } from "@/lib/care";
 import type { ProductDetail } from "@/lib/duka/types";
 
 // initialProduct comes from the server page so the full product HTML is in the first response
@@ -51,6 +54,7 @@ export function ProductDetailView({
   const priceLabel = variantPriceLabel(product.variants, selectedVariant);
   const regularPriceLabel = variantRegularPriceLabel(product.variants, selectedVariant);
   const discountLabel = (selectedVariant ?? product).discount?.label;
+  const careGuide = getCareGuide(product.specifications);
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
@@ -116,6 +120,32 @@ export function ProductDetailView({
               </p>
             )}
           </div>
+
+          {product.specifications && product.specifications.length > 0 && (
+            <div className="mt-8 border-t border-bone/10 pt-8">
+              <p className={FIELD_LABEL_CLASS}>Specifications</p>
+              <dl className="mt-4 divide-y divide-bone/10">
+                {product.specifications.map((spec) => (
+                  <div key={spec.key} className="flex justify-between gap-6 py-3 text-sm">
+                    <dt className="text-bone/60">{spec.key}</dt>
+                    <dd className="text-right text-bone">{spec.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
+          {careGuide && (
+            <div className="mt-8 border-t border-bone/10 pt-8">
+              <p className={FIELD_LABEL_CLASS}>Care</p>
+              <Link
+                href={`/care/${careGuide.slug}`}
+                className="mt-3 inline-block text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-gold hover:text-bone"
+              >
+                {careGuide.linkLabel} <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
